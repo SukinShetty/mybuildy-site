@@ -1,0 +1,155 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Brand colours, sampled from the mascot art. Black everywhere, no light mode. */
+:root {
+  --ink: #050506;
+  --surface: #0e0e11;
+  --orange: #fc8400;
+  --amber: #fca800;
+  --deep: #cc3c00;
+  --text: #f4f2ef;
+  --muted: #9a968f;
+  --line: rgb(244 242 239 / 0.08);
+
+  /* shadcn tokens mapped onto the brand */
+  --background: var(--ink);
+  --foreground: var(--text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text);
+  --primary: var(--orange);
+  --primary-foreground: var(--ink);
+  --muted-foreground: var(--muted);
+  --border: var(--line);
+  --ring: var(--amber);
+  --radius: 0.75rem;
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-surface: var(--surface);
+  --color-orange: var(--orange);
+  --color-amber: var(--amber);
+  --color-deep: var(--deep);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-satoshi), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.4);
+
+  /* Type scale: five steps, nothing in between.
+     small 15 · body 18/19 · note 24 · section 40–48 · hero 52–88 (floor lowered below 400px so
+     the longest word fits a 380px screen). */
+  --text-small: 0.9375rem;
+  --text-small--line-height: 1.6;
+  --text-body: clamp(1.125rem, 0.2vw + 1.08rem, 1.1875rem);
+  --text-body--line-height: 1.7;
+  --text-note: 1.5rem;
+  --text-note--line-height: 1.55;
+  --text-section: clamp(2.5rem, 1.2vw + 2.1rem, 3rem);
+  --text-section--line-height: 1.1;
+  --text-hero: clamp(3.25rem, 6vw + 1.5rem, 5.5rem);
+  --text-hero--line-height: 1.02;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply bg-ink font-sans antialiased;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+  body {
+    @apply bg-ink text-text text-body;
+    overflow-x: clip;
+  }
+  ::selection {
+    background: var(--orange);
+    color: var(--ink);
+  }
+  /* Visible keyboard focus everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+}
+
+/* The one scroll reveal: 24px up, fade, 500ms, once (components/reveal.tsx). */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.js [data-reveal][data-revealed] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* Reveals become instant; the drawn line is simply there. */
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  [data-draw-line] {
+    transform: none !important;
+  }
+}
+
+/* Robot idle life. Only the robot animates continuously. */
+@keyframes buildy-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.015); }
+}
+@keyframes buildy-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes buildy-glow {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+@keyframes buildy-shadow {
+  0%, 100% { opacity: 0.9; transform: scaleX(1); }
+  50% { opacity: 0.65; transform: scaleX(0.94); }
+}
+@keyframes buildy-wave {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-8deg); }
+  40% { transform: rotate(6deg); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(3deg); }
+}

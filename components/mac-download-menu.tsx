@@ -1,0 +1,53 @@
+"use client";
+
+import { ChevronDown, Download } from "lucide-react";
+import { useRef } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { DownloadAsset } from "@/lib/github";
+
+type Props = {
+  macArm?: DownloadAsset;
+  macIntel?: DownloadAsset;
+  fallbackUrl: string;
+  className: string;
+  attention: React.HTMLAttributes<HTMLElement>;
+};
+
+/** "Download for Mac" with a popover choosing between the two DMGs. Loaded lazily: it pulls in base-ui. */
+export default function MacDownloadMenu({ macArm, macIntel, fallbackUrl, className, attention }: Props) {
+  const armRef = useRef<HTMLAnchorElement>(null);
+
+  return (
+    <Popover>
+      <PopoverTrigger className={`${className} cursor-pointer`} {...attention}>
+        <Download className="size-5" aria-hidden="true" />
+        Download for Mac
+        <ChevronDown className="size-4 opacity-70" aria-hidden="true" />
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        sideOffset={8}
+        initialFocus={armRef}
+        className="w-80 gap-1 rounded-2xl border border-line bg-surface p-2 text-text shadow-none ring-0"
+      >
+        <p className="px-3 pb-1 pt-2 text-small text-muted">Which Mac do you have?</p>
+        <a
+          ref={armRef}
+          href={macArm?.url ?? fallbackUrl}
+          className="block rounded-xl border border-orange/50 bg-orange/10 px-3 py-3 text-body font-bold hover:bg-orange/15"
+        >
+          Apple Silicon (M1 and later)
+        </a>
+        <a
+          href={macIntel?.url ?? fallbackUrl}
+          className="block rounded-xl border border-transparent px-3 py-3 text-body hover:border-line hover:bg-white/5"
+        >
+          Intel
+        </a>
+        <p className="px-3 pb-2 pt-1 text-small text-muted">
+          Not sure? Apple menu, About This Mac: &ldquo;Chip: Apple M&hellip;&rdquo; means Apple Silicon.
+        </p>
+      </PopoverContent>
+    </Popover>
+  );
+}
