@@ -158,3 +158,149 @@
   60% { transform: rotate(-5deg); }
   80% { transform: rotate(3deg); }
 }
+
+/* ── Buildy states ("Who is Buildy?") ───────────────────────────────────────────
+   One 13.5s loop: idle 0–2.5s · watching 2.5–6.5s · thinking 6.5–9.5s · speaking 9.5–13.5s.
+   Every element of a state (pose, glow, effect, caption) runs that state's track, so they
+   crossfade together over 400ms (2.963% of the loop). The -0.4s delay starts the page on a
+   fully faded-in idle. Paused while off screen (PlayWhenVisible sets data-paused). */
+.bs {
+  --bs-loop: 13.5s;
+}
+.bs-glow,
+.bs-pose,
+.bs-fx,
+.bs-caption {
+  opacity: 0;
+  animation-duration: var(--bs-loop);
+  animation-iteration-count: infinite;
+  animation-delay: -0.4s;
+  animation-timing-function: ease-in-out;
+}
+.bs-pose.bs-idle { animation-name: bs-pose-idle; }
+.bs-pose.bs-watching { animation-name: bs-pose-watching; }
+.bs-pose.bs-thinking { animation-name: bs-pose-thinking; }
+.bs-pose.bs-speaking { animation-name: bs-pose-speaking; }
+:is(.bs-glow, .bs-fx, .bs-caption).bs-idle { animation-name: bs-fade-idle; }
+:is(.bs-glow, .bs-fx, .bs-caption).bs-watching { animation-name: bs-fade-watching; }
+:is(.bs-glow, .bs-fx, .bs-caption).bs-thinking { animation-name: bs-fade-thinking; }
+:is(.bs-glow, .bs-fx, .bs-caption).bs-speaking { animation-name: bs-fade-speaking; }
+
+/* Glow colours match the app: idle orange, watching green, thinking purple, speaking warm white. */
+.bs-glow { background: radial-gradient(closest-side, var(--bs-glow) 0%, transparent 100%); }
+.bs-glow.bs-idle { --bs-glow: rgb(245 158 11 / 0.26); }
+.bs-glow.bs-watching { --bs-glow: rgb(16 185 129 / 0.26); }
+.bs-glow.bs-thinking { --bs-glow: rgb(139 92 246 / 0.3); }
+.bs-glow.bs-speaking { --bs-glow: rgb(255 240 222 / 0.2); }
+
+.bs-float { animation: buildy-float 6s ease-in-out infinite; }
+.bs-breathe { animation: buildy-breathe 4s ease-in-out infinite; }
+
+/* Thinking: three purple dots orbiting above his head. */
+.bs-orbit { container-type: size; animation: bs-spin 2.6s linear infinite; }
+.bs-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22%;
+  height: 22%;
+  margin: -11% 0 0 -11%;
+  border-radius: 9999px;
+  background: rgb(167 139 250);
+  box-shadow: 0 0 8px rgb(139 92 246 / 0.8);
+}
+/* Speaking: soft warm-white ripples expanding from his head. */
+.bs-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid rgb(255 240 222 / 0.55);
+  animation: bs-ripple 1.8s ease-out infinite;
+  opacity: 0;
+}
+
+.bs[data-paused] *,
+.bs[data-paused] *::before,
+.bs[data-paused] *::after {
+  animation-play-state: paused !important;
+}
+
+@keyframes bs-spin { to { transform: rotate(360deg); } }
+@keyframes bs-ripple {
+  0% { transform: scale(0.55); opacity: 0.7; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+/* Pose tracks: fade in with a small scale pop (0.94 → 1.03 → 1), hold, fade out. */
+@keyframes bs-pose-idle {
+  0% { opacity: 0; transform: scale(0.94); }
+  1.778% { transform: scale(1.03); }
+  2.963% { opacity: 1; transform: scale(1); }
+  18.519% { opacity: 1; transform: scale(1); }
+  21.481% { opacity: 0; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.94); }
+}
+@keyframes bs-pose-watching {
+  0%, 18.519% { opacity: 0; transform: scale(0.94); }
+  20.296% { transform: scale(1.03); }
+  21.481% { opacity: 1; transform: scale(1); }
+  48.148% { opacity: 1; transform: scale(1); }
+  51.111% { opacity: 0; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.94); }
+}
+@keyframes bs-pose-thinking {
+  0%, 48.148% { opacity: 0; transform: scale(0.94); }
+  49.926% { transform: scale(1.03); }
+  51.111% { opacity: 1; transform: scale(1); }
+  70.37% { opacity: 1; transform: scale(1); }
+  73.333% { opacity: 0; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.94); }
+}
+@keyframes bs-pose-speaking {
+  0% { opacity: 1; transform: scale(1); }
+  2.963% { opacity: 0; transform: scale(1); }
+  70.37% { opacity: 0; transform: scale(0.94); }
+  72.148% { transform: scale(1.03); }
+  73.333% { opacity: 1; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+/* Opacity-only tracks for the glow, effects and caption of each state. */
+@keyframes bs-fade-idle {
+  0% { opacity: 0; }
+  2.963%, 18.519% { opacity: 1; }
+  21.481%, 100% { opacity: 0; }
+}
+@keyframes bs-fade-watching {
+  0%, 18.519% { opacity: 0; }
+  21.481%, 48.148% { opacity: 1; }
+  51.111%, 100% { opacity: 0; }
+}
+@keyframes bs-fade-thinking {
+  0%, 48.148% { opacity: 0; }
+  51.111%, 70.37% { opacity: 1; }
+  73.333%, 100% { opacity: 0; }
+}
+@keyframes bs-fade-speaking {
+  0% { opacity: 1; }
+  2.963%, 70.37% { opacity: 0; }
+  73.333%, 100% { opacity: 1; }
+}
+
+/* Reduced motion: no cycling, no breathing — the watching pose, still, with its glow and caption. */
+@media (prefers-reduced-motion: reduce) {
+  .bs *,
+  .bs *::before,
+  .bs *::after {
+    animation: none !important;
+  }
+  .bs .bs-glow,
+  .bs .bs-pose,
+  .bs .bs-fx,
+  .bs .bs-caption {
+    opacity: 0;
+  }
+  .bs .bs-watching:not(.bs-fx) {
+    opacity: 1;
+    transform: none;
+  }
+}

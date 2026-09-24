@@ -42,9 +42,13 @@ const EYES = [
 ];
 const PUPIL = 56;
 
-// Limits. Head tilt stays subtle; pupils travel inside an ellipse that keeps the ring in the visor.
-const TILT_Y_DEG = 8; // horizontal (turning left/right)
-const TILT_X_DEG = 6; // vertical (nodding)
+// Limits. Pupils travel inside an ellipse that keeps the ring in the visor.
+const TILT_Y_DEG = 12; // horizontal (turning left/right)
+const TILT_X_DEG = 8; // vertical (nodding)
+// Rotation alone barely reads on flat front-facing art; moving the body toward the pointer is
+// what reads as "turning to look". Same springs as the tilt, clamped.
+const SHIFT_X_PX = 18;
+const SHIFT_Y_PX = 10; // total vertical travel, including the lift toward a hovered button
 const LOOK_RX = 9; // source px
 const LOOK_RY = 6;
 // Pointer distance (screen px) at which the pupils reach the edge of their ellipse.
@@ -85,15 +89,18 @@ export function HeroRobot({ attention, className }: { attention?: HTMLElement | 
   const eyeY = useSpring(eyeTargetY, EYE_SPRING);
   const lift = useSpring(liftTarget, LIFT_SPRING);
 
-  // Clamped outputs. Three parallax rates: glow least, reflection middle, robot most.
+  // Clamped outputs. The robot turns AND shifts toward the pointer; the glow drifts the same way
+  // at half the distance (depth); the floor reflection takes exactly the robot's horizontal shift,
+  // so it can never decouple from his feet.
   const clampOpts = { clamp: true };
+  const clampShiftY = (v: number) => Math.max(-SHIFT_Y_PX, Math.min(SHIFT_Y_PX, v));
   const rotateY = useTransform(headX, [-1, 1], [-TILT_Y_DEG, TILT_Y_DEG], clampOpts);
   const rotateX = useTransform(headY, [-1, 1], [TILT_X_DEG, -TILT_X_DEG], clampOpts);
-  const robotX = useTransform(headX, [-1, 1], [-18, 18], clampOpts);
-  const robotY = useTransform([headY, lift], ([y, l]: number[]) => clamp1(y) * 10 + l);
-  const glowX = useTransform(headX, [-1, 1], [10, -10], clampOpts);
-  const glowY = useTransform(headY, [-1, 1], [8, -8], clampOpts);
-  const reflX = useTransform(headX, [-1, 1], [-10, 10], clampOpts);
+  const robotX = useTransform(headX, [-1, 1], [-SHIFT_X_PX, SHIFT_X_PX], clampOpts);
+  const robotY = useTransform([headY, lift], ([y, l]: number[]) => clampShiftY(clamp1(y) * SHIFT_Y_PX + l));
+  const glowX = useTransform(robotX, (v) => v / 2);
+  const glowY = useTransform(headY, [-1, 1], [-SHIFT_Y_PX / 2, SHIFT_Y_PX / 2], clampOpts);
+  const reflX = robotX;
   const pupilX = useTransform([eyeX, eyeY], ([x, y]: number[]) => `${(onEllipse(x, y)[0] / PUPIL) * 100}%`);
   const pupilY = useTransform([eyeX, eyeY], ([x, y]: number[]) => `${(onEllipse(x, y)[1] / PUPIL) * 100}%`);
 

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { BuildyStates } from "@/components/buildy-states";
 import { DemoVideo } from "@/components/demo-video";
 import { DownloadButtons } from "@/components/download-buttons";
 import { Features } from "@/components/features";
@@ -86,20 +87,8 @@ export default async function Home() {
         {/* 4. Who is Buildy */}
         <section id="who" aria-labelledby="who-title" className="py-24 sm:py-32">
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20 lg:px-8">
-            <Reveal className="relative mx-auto w-[min(76vw,380px)] lg:w-full lg:max-w-[440px]">
-              <div
-                aria-hidden="true"
-                className="absolute inset-[8%] -z-10 rounded-full"
-                style={{ background: "radial-gradient(closest-side, rgb(252 132 0 / 0.16), transparent)" }}
-              />
-              <Image
-                src="/images/buildy-watching.png"
-                alt="Buildy, a small orange robot with a dark visor and round glowing eyes, mid-step and looking up attentively"
-                width={512}
-                height={768}
-                sizes="(max-width: 1024px) 76vw, 440px"
-                className="h-auto w-full"
-              />
+            <Reveal className="relative isolate mx-auto w-[min(76vw,380px)] lg:w-full lg:max-w-[440px]">
+              <BuildyStates />
             </Reveal>
             <div>
               <Reveal>
