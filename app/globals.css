@@ -127,6 +127,11 @@
   [data-draw-line] {
     transform: none !important;
   }
+  /* The hero robot keeps breathing (a 1.5% scale, no travel); tracking, float and glow stop. */
+  [data-breathe] {
+    animation-duration: 4s !important;
+    animation-iteration-count: infinite !important;
+  }
 }
 
 /* Robot idle life. Only the robot animates continuously. */

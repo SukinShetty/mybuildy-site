@@ -7,12 +7,20 @@
  * Self-contained on purpose: the only input is `attention`, an element to look at (the hovered
  * download button). Swap this file for a real 3D model later without touching anything else.
  *
- * It renders as static markup with CSS idle life (breathing, float, glow pulse). Only on devices
- * that track (a fine pointer that can hover, and no reduced-motion preference) does it import
- * framer-motion and drive the tilt, parallax and pupils with springs. Phones never download it.
+ * Every animated value is a framer-motion motion value bound through `style`, so pointer
+ * movement never re-renders React: the component renders once. The pointer only ever SETS
+ * raw targets (once per frame at most); springs follow those targets, and every output is
+ * clamped by useTransform, so the tilt and the pupils can never leave their limits even if a
+ * spring were to misbehave. (The previous version relaunched `animate()` on every frame; each
+ * relaunch inherited a runaway velocity, the springs diverged, and the robot swung edge-on
+ * and off screen.)
+ *
+ * Tracking runs only on devices with a fine, hovering pointer and no reduced-motion
+ * preference. Everyone else gets the CSS idle life (breathing, float, glow pulse); with
+ * reduced motion only the breathing stays (see globals.css).
  *
  * Geometry is in source pixels of buildy-face-blank.png (512x768), measured by
- * scripts/make-face-assets.mjs:
+ * scripts/make-face-assets.mjs, and placed in percentages so it scales with the image:
  *   visor bounds  x 170–343, y 190–291
  *   left eye      centre (210.5, 238),   r 26.5
  *   right eye     centre (303.5, 237.5), r 26
@@ -21,6 +29,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import { LazyMotion, domMin, m, useMotionValue, useSpring, useTransform } from "framer-motion";
 
 const SRC_W = 512;
 const SRC_H = 768;
@@ -32,128 +41,154 @@ const EYES = [
   { cx: 303.5, cy: 237.5 },
 ];
 const PUPIL = 56;
-// How far the pupils may travel from rest, in source px: an ellipse that keeps the ring inside the visor.
-const LOOK_RX = 9;
+
+// Limits. Head tilt stays subtle; pupils travel inside an ellipse that keeps the ring in the visor.
+const TILT_Y_DEG = 8; // horizontal (turning left/right)
+const TILT_X_DEG = 6; // vertical (nodding)
+const LOOK_RX = 9; // source px
 const LOOK_RY = 6;
 // Pointer distance (screen px) at which the pupils reach the edge of their ellipse.
 const LOOK_REACH = 260;
-// Springs: the head is soft and slow, the pupils quick, so he visibly looks before he turns.
-const HEAD_SPRING = { type: "spring", stiffness: 90, damping: 18, mass: 0.8 } as const;
-const EYE_SPRING = { type: "spring", stiffness: 420, damping: 32, mass: 0.5 } as const;
-const LIFT_SPRING = { type: "spring", stiffness: 260, damping: 22 } as const;
+
+// Springs, all at or above critical damping so they settle without overshoot. The head is soft
+// and slow, the pupils quick, so he visibly looks before he turns.
+const HEAD_SPRING = { stiffness: 70, damping: 20, mass: 0.8 };
+const EYE_SPRING = { stiffness: 300, damping: 34, mass: 0.5 };
+const LIFT_SPRING = { stiffness: 220, damping: 30, mass: 1 };
+
+const TRACK_QUERY = "(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)";
 
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 const clamp1 = (v: number) => Math.max(-1, Math.min(1, v));
+/** Scale (x, y) back onto the look ellipse if it lies outside it. */
+const onEllipse = (x: number, y: number): [number, number] => {
+  const k = Math.hypot(x / LOOK_RX, y / LOOK_RY);
+  return k > 1 ? [x / k, y / k] : [x, y];
+};
 
 export function HeroRobot({ attention, className }: { attention?: HTMLElement | null; className?: string }) {
   const stage = useRef<HTMLDivElement>(null);
-  const glow = useRef<HTMLDivElement>(null);
-  const refl = useRef<HTMLDivElement>(null);
-  const robot = useRef<HTMLDivElement>(null);
-  const pupils = useRef<(HTMLDivElement | null)[]>([]);
   const attentionRef = useRef<HTMLElement | null>(null);
   const aimRef = useRef<() => void>(() => {});
 
+  // Raw targets, written by the pointer (at most once per frame): head -1..1, eyes and lift in px.
+  const headTargetX = useMotionValue(0);
+  const headTargetY = useMotionValue(0);
+  const eyeTargetX = useMotionValue(0);
+  const eyeTargetY = useMotionValue(0);
+  const liftTarget = useMotionValue(0);
+
+  // Springs follow the targets.
+  const headX = useSpring(headTargetX, HEAD_SPRING);
+  const headY = useSpring(headTargetY, HEAD_SPRING);
+  const eyeX = useSpring(eyeTargetX, EYE_SPRING);
+  const eyeY = useSpring(eyeTargetY, EYE_SPRING);
+  const lift = useSpring(liftTarget, LIFT_SPRING);
+
+  // Clamped outputs. Three parallax rates: glow least, reflection middle, robot most.
+  const clampOpts = { clamp: true };
+  const rotateY = useTransform(headX, [-1, 1], [-TILT_Y_DEG, TILT_Y_DEG], clampOpts);
+  const rotateX = useTransform(headY, [-1, 1], [TILT_X_DEG, -TILT_X_DEG], clampOpts);
+  const robotX = useTransform(headX, [-1, 1], [-18, 18], clampOpts);
+  const robotY = useTransform([headY, lift], ([y, l]: number[]) => clamp1(y) * 10 + l);
+  const glowX = useTransform(headX, [-1, 1], [10, -10], clampOpts);
+  const glowY = useTransform(headY, [-1, 1], [8, -8], clampOpts);
+  const reflX = useTransform(headX, [-1, 1], [-10, 10], clampOpts);
+  const pupilX = useTransform([eyeX, eyeY], ([x, y]: number[]) => `${(onEllipse(x, y)[0] / PUPIL) * 100}%`);
+  const pupilY = useTransform([eyeX, eyeY], ([x, y]: number[]) => `${(onEllipse(x, y)[1] / PUPIL) * 100}%`);
+
   useEffect(() => {
-    const mq = window.matchMedia("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)");
-    let teardown: (() => void) | undefined;
-    let cancelled = false;
+    const el = stage.current;
+    const section: HTMLElement | Window = el?.closest("section") ?? window;
+    const mq = window.matchMedia(TRACK_QUERY);
+    let pointer: { x: number; y: number } | null = null;
+    let frame = 0;
 
-    const start = async () => {
-      const { motionValue, animate } = await import("framer-motion");
-      if (cancelled || !stage.current) return;
+    const toRest = () => {
+      headTargetX.set(0);
+      headTargetY.set(0);
+      eyeTargetX.set(0);
+      eyeTargetY.set(0);
+      liftTarget.set(0);
+    };
 
-      // Pointer relative to the robot (-1..1), pupil offset in source px, lift in px.
-      const nx = motionValue(0), ny = motionValue(0);
-      const px = motionValue(0), py = motionValue(0);
-      const lift = motionValue(0);
+    // Recompute every target from the latest pointer (or the hovered button). Only SETS targets.
+    const aim = () => {
+      frame = 0;
+      if (!el) return;
+      const focus = attentionRef.current;
+      let target = pointer;
+      if (focus) {
+        const b = focus.getBoundingClientRect();
+        target = { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+      }
+      liftTarget.set(focus ? -8 : 0);
+      if (!target) {
+        headTargetX.set(0);
+        headTargetY.set(0);
+        eyeTargetX.set(0);
+        eyeTargetY.set(0);
+        return;
+      }
+      const r = el.getBoundingClientRect();
+      // Head: relative to the robot's centre, scaled by the viewport.
+      headTargetX.set(clamp1((target.x - (r.left + r.width / 2)) / (window.innerWidth / 2)));
+      headTargetY.set(clamp1((target.y - (r.top + r.height * 0.4)) / (window.innerHeight / 2)));
+      // Pupils: direction from the midpoint between the eyes, magnitude easing in with distance.
+      const scale = r.width / SRC_W;
+      const dx = target.x - (r.left + ((EYES[0].cx + EYES[1].cx) / 2) * scale);
+      const dy = target.y - (r.top + ((EYES[0].cy + EYES[1].cy) / 2) * scale);
+      const dist = Math.hypot(dx, dy) || 1;
+      const reach = Math.min(1, dist / LOOK_REACH);
+      const [lx, ly] = onEllipse((dx / dist) * LOOK_RX * reach, (dy / dist) * LOOK_RY * reach);
+      eyeTargetX.set(lx);
+      eyeTargetY.set(ly);
+    };
+    const scheduleAim = () => {
+      if (!frame) frame = requestAnimationFrame(aim);
+    };
 
-      let frame = 0;
-      const paint = () => {
-        frame = 0;
-        const x = nx.get(), y = ny.get();
-        // Three parallax rates: glow least, reflection middle, robot most.
-        if (glow.current) glow.current.style.transform = `translate3d(${x * -10}px, ${y * -8}px, 0)`;
-        if (refl.current) refl.current.style.transform = `translate3d(${x * 10}px, 0, 0)`;
-        if (robot.current)
-          robot.current.style.transform = `translate3d(${x * 18}px, ${y * 10 + lift.get()}px, 0) rotateX(${y * -6}deg) rotateY(${x * 8}deg)`;
-        const t = `translate(${(px.get() / PUPIL) * 100}%, ${(py.get() / PUPIL) * 100}%)`;
-        for (const p of pupils.current) if (p) p.style.transform = t;
-      };
-      const schedulePaint = () => { if (!frame) frame = requestAnimationFrame(paint); };
-      const unsubs = [nx, ny, px, py, lift].map((v) => v.on("change", schedulePaint));
+    const onMove = (e: Event) => {
+      const p = e as PointerEvent;
+      if (p.pointerType !== "mouse" && p.pointerType !== "pen") return;
+      pointer = { x: p.clientX, y: p.clientY };
+      scheduleAim();
+    };
+    const onLeave = () => {
+      pointer = null;
+      scheduleAim();
+    };
 
-      let pointer: { x: number; y: number } | null = null;
-      const aim = () => {
-        const el = stage.current;
-        if (!el) return;
-        const r = el.getBoundingClientRect();
-        let target = pointer;
-        const focus = attentionRef.current;
-        if (focus) {
-          const b = focus.getBoundingClientRect();
-          target = { x: b.left + b.width / 2, y: b.top + b.height / 2 };
-        }
-        animate(lift, focus ? -8 : 0, LIFT_SPRING);
-        if (!target) {
-          for (const v of [nx, ny]) animate(v, 0, HEAD_SPRING);
-          for (const v of [px, py]) animate(v, 0, EYE_SPRING);
-          return;
-        }
-        // Head tilt and parallax: relative to the robot's centre, scaled by the viewport.
-        animate(nx, clamp1((target.x - (r.left + r.width / 2)) / (window.innerWidth / 2)), HEAD_SPRING);
-        animate(ny, clamp1((target.y - (r.top + r.height * 0.4)) / (window.innerHeight / 2)), HEAD_SPRING);
-        // Pupils: direction from the midpoint between the eyes, magnitude eases in with distance,
-        // so the offset always lies inside the look ellipse.
-        const scale = r.width / SRC_W;
-        const dx = target.x - (r.left + ((EYES[0].cx + EYES[1].cx) / 2) * scale);
-        const dy = target.y - (r.top + ((EYES[0].cy + EYES[1].cy) / 2) * scale);
-        const dist = Math.hypot(dx, dy) || 1;
-        const reach = Math.min(1, dist / LOOK_REACH);
-        animate(px, (dx / dist) * LOOK_RX * reach, EYE_SPRING);
-        animate(py, (dy / dist) * LOOK_RY * reach, EYE_SPRING);
-      };
-
-      let aimFrame = 0;
-      const scheduleAim = () => { if (!aimFrame) aimFrame = requestAnimationFrame(() => { aimFrame = 0; aim(); }); };
-      const onMove = (e: PointerEvent) => {
-        if (e.pointerType !== "mouse" && e.pointerType !== "pen") return;
-        pointer = { x: e.clientX, y: e.clientY };
-        scheduleAim();
-      };
-      const onLeave = () => { pointer = null; scheduleAim(); };
-
-      window.addEventListener("pointermove", onMove, { passive: true });
+    let tracking = false;
+    const attach = () => {
+      if (tracking) return;
+      tracking = true;
+      section.addEventListener("pointermove", onMove, { passive: true });
+      section.addEventListener("pointerleave", onLeave, { passive: true });
       window.addEventListener("scroll", scheduleAim, { passive: true });
-      document.documentElement.addEventListener("pointerleave", onLeave);
       aimRef.current = scheduleAim;
-
-      teardown = () => {
-        aimRef.current = () => {};
-        window.removeEventListener("pointermove", onMove);
-        window.removeEventListener("scroll", scheduleAim);
-        document.documentElement.removeEventListener("pointerleave", onLeave);
-        cancelAnimationFrame(frame);
-        cancelAnimationFrame(aimFrame);
-        unsubs.forEach((u) => u());
-        [nx, ny, px, py, lift].forEach((v) => v.destroy());
-        for (const el of [glow.current, refl.current, robot.current, ...pupils.current]) if (el) el.style.transform = "";
-      };
     };
-
-    const sync = () => {
-      teardown?.();
-      teardown = undefined;
-      if (mq.matches) start();
+    const detach = () => {
+      if (!tracking) return;
+      tracking = false;
+      section.removeEventListener("pointermove", onMove);
+      section.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("scroll", scheduleAim);
+      aimRef.current = () => {};
+      cancelAnimationFrame(frame);
+      frame = 0;
+      pointer = null;
+      toRest();
     };
+    const sync = () => (mq.matches ? attach() : detach());
+
     sync();
     mq.addEventListener("change", sync);
     return () => {
-      cancelled = true;
       mq.removeEventListener("change", sync);
-      teardown?.();
+      detach();
     };
-  }, []);
+  }, [headTargetX, headTargetY, eyeTargetX, eyeTargetY, liftTarget]);
 
   // Looking at a hovered download button, and lifting a few pixels toward it.
   useEffect(() => {
@@ -162,93 +197,106 @@ export function HeroRobot({ attention, className }: { attention?: HTMLElement | 
   }, [attention]);
 
   return (
-    <div
-      ref={stage}
-      className={`relative aspect-[512/768] w-full select-none [perspective:1200px] ${className ?? ""}`}
-      aria-hidden="true"
-    >
-      {/* Layer 1: radial glow behind him, pulsing out of phase with the breathing */}
-      <div ref={glow} className="pointer-events-none absolute inset-0 will-change-transform">
-        <div
-          className="absolute left-1/2 top-[42%] aspect-square w-[118%] -translate-x-1/2 -translate-y-1/2"
-          style={{ animation: "buildy-glow 4s ease-in-out -2s infinite" }}
+    <LazyMotion features={domMin} strict>
+      <div
+        ref={stage}
+        className={`relative aspect-[512/768] w-full select-none [perspective:1200px] ${className ?? ""}`}
+        aria-hidden="true"
+      >
+        {/* Layer 1: radial glow behind him, pulsing out of phase with the breathing */}
+        <m.div className="pointer-events-none absolute inset-0 will-change-transform" style={{ x: glowX, y: glowY }}>
+          <div
+            className="absolute left-1/2 top-[42%] aspect-square w-[118%] -translate-x-1/2 -translate-y-1/2"
+            style={{ animation: "buildy-glow 4s ease-in-out -2s infinite" }}
+          >
+            <div
+              className="h-full w-full rounded-full"
+              style={{
+                background:
+                  "radial-gradient(closest-side, rgb(252 168 0 / 0.30), rgb(252 132 0 / 0.16) 38%, rgb(204 60 0 / 0.07) 62%, transparent 100%)",
+              }}
+            />
+          </div>
+        </m.div>
+
+        {/* Layer 2: soft reflection beneath */}
+        <m.div
+          className="pointer-events-none absolute inset-x-0 top-[77%] h-[30%] will-change-transform"
+          style={{ x: reflX }}
         >
           <div
-            className="h-full w-full rounded-full"
+            className="absolute left-1/2 top-[1%] h-[9%] w-[58%] -translate-x-1/2 rounded-[50%]"
             style={{
-              background:
-                "radial-gradient(closest-side, rgb(252 168 0 / 0.30), rgb(252 132 0 / 0.16) 38%, rgb(204 60 0 / 0.07) 62%, transparent 100%)",
+              background: "radial-gradient(closest-side, rgb(204 60 0 / 0.55), rgb(204 60 0 / 0.18) 55%, transparent)",
+              animation: "buildy-shadow 4s ease-in-out infinite",
             }}
           />
-        </div>
-      </div>
-
-      {/* Layer 2: soft reflection beneath */}
-      <div ref={refl} className="pointer-events-none absolute inset-x-0 top-[77%] h-[30%] will-change-transform">
-        <div
-          className="absolute left-1/2 top-[1%] h-[9%] w-[58%] -translate-x-1/2 rounded-[50%]"
-          style={{
-            background: "radial-gradient(closest-side, rgb(204 60 0 / 0.55), rgb(204 60 0 / 0.18) 55%, transparent)",
-            animation: "buildy-shadow 4s ease-in-out infinite",
-          }}
-        />
-        <div
-          className="absolute inset-x-0 top-0 h-full overflow-hidden opacity-[0.16]"
-          style={{
-            maskImage: "linear-gradient(to bottom, black, transparent 70%)",
-            WebkitMaskImage: "linear-gradient(to bottom, black, transparent 70%)",
-          }}
-        >
-          {/* feet sit 22% down the flipped art; margin % resolves against width, so 22% x 1.5 */}
-          <div className="relative aspect-[512/768] w-full -scale-y-100" style={{ marginTop: "-33%" }}>
-            <Image src="/images/buildy-face-blank.png" alt="" fill sizes="(max-width: 1024px) 70vw, 520px" className="object-contain blur-[1.5px]" />
-          </div>
-        </div>
-      </div>
-
-      {/* Layer 3: the robot */}
-      <div ref={robot} className="absolute inset-0 will-change-transform [transform-style:preserve-3d]">
-        <div className="absolute inset-0" style={{ animation: "buildy-float 6s ease-in-out infinite" }}>
-          <div className="absolute inset-0 origin-[50%_78%]" style={{ animation: "buildy-breathe 4s ease-in-out infinite" }}>
-            <Image
-              src="/images/buildy-face-blank.png"
-              alt=""
-              fill
-              priority
-              fetchPriority="high"
-              sizes="(max-width: 1024px) 70vw, 520px"
-              className="object-contain"
-            />
-            {/* Visor: clips the pupils to the dark glass. Rounded like the art's visor. */}
-            <div
-              className="absolute overflow-hidden"
-              style={{
-                left: pct(VISOR.x0, SRC_W),
-                top: pct(VISOR.y0, SRC_H),
-                width: pct(VW, SRC_W),
-                height: pct(VH, SRC_H),
-                borderRadius: "34% / 48%",
-              }}
-            >
-              {EYES.map((eye, i) => (
-                <div
-                  key={i}
-                  ref={(el) => { pupils.current[i] = el; }}
-                  className="absolute will-change-transform"
-                  style={{
-                    left: pct(eye.cx - PUPIL / 2 - VISOR.x0, VW),
-                    top: pct(eye.cy - PUPIL / 2 - VISOR.y0, VH),
-                    width: pct(PUPIL, VW),
-                    height: pct(PUPIL, VH),
-                  }}
-                >
-                  <Image src="/images/pupil.png" alt="" fill sizes="64px" className="object-contain" />
-                </div>
-              ))}
+          <div
+            className="absolute inset-x-0 top-0 h-full overflow-hidden opacity-[0.16]"
+            style={{
+              maskImage: "linear-gradient(to bottom, black, transparent 70%)",
+              WebkitMaskImage: "linear-gradient(to bottom, black, transparent 70%)",
+            }}
+          >
+            {/* feet sit 22% down the flipped art; margin % resolves against width, so 22% x 1.5 */}
+            <div className="relative aspect-[512/768] w-full -scale-y-100" style={{ marginTop: "-33%" }}>
+              <Image src="/images/buildy-face-blank.png" alt="" fill sizes="(max-width: 1024px) 70vw, 520px" className="object-contain blur-[1.5px]" />
             </div>
           </div>
-        </div>
+        </m.div>
+
+        {/* Layer 3: the robot. Only this wrapper is transformed; the images sit inside it. */}
+        <m.div
+          className="absolute inset-0 will-change-transform"
+          style={{ x: robotX, y: robotY, rotateX, rotateY }}
+        >
+          <div className="absolute inset-0" style={{ animation: "buildy-float 6s ease-in-out infinite" }}>
+            <div
+              data-breathe=""
+              className="absolute inset-0 origin-[50%_78%]"
+              style={{ animation: "buildy-breathe 4s ease-in-out infinite" }}
+            >
+              <Image
+                src="/images/buildy-face-blank.png"
+                alt=""
+                fill
+                priority
+                fetchPriority="high"
+                sizes="(max-width: 1024px) 70vw, 520px"
+                className="object-contain"
+              />
+              {/* Visor: clips the pupils to the dark glass. Rounded like the art's visor. */}
+              <div
+                className="absolute overflow-hidden"
+                style={{
+                  left: pct(VISOR.x0, SRC_W),
+                  top: pct(VISOR.y0, SRC_H),
+                  width: pct(VW, SRC_W),
+                  height: pct(VH, SRC_H),
+                  borderRadius: "34% / 48%",
+                }}
+              >
+                {EYES.map((eye, i) => (
+                  <m.div
+                    key={i}
+                    className="absolute will-change-transform"
+                    style={{
+                      left: pct(eye.cx - PUPIL / 2 - VISOR.x0, VW),
+                      top: pct(eye.cy - PUPIL / 2 - VISOR.y0, VH),
+                      width: pct(PUPIL, VW),
+                      height: pct(PUPIL, VH),
+                      x: pupilX,
+                      y: pupilY,
+                    }}
+                  >
+                    <Image src="/images/pupil.png" alt="" fill sizes="64px" className="object-contain" />
+                  </m.div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </m.div>
       </div>
-    </div>
+    </LazyMotion>
   );
 }
