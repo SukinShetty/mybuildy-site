@@ -11,7 +11,7 @@
  */
 
 import { Dialog } from "@base-ui/react/dialog";
-import { Check, Copy, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
   AGENT_OPTIONS,
@@ -26,7 +26,6 @@ import { REPO_URL } from "@/lib/site";
 
 const ISSUES_URL = `${REPO_URL}/issues`;
 const CHECKSUM_URL = `${REPO_URL}/releases/latest`;
-const QUARANTINE_CMD = "xattr -dr com.apple.quarantine /Applications/MyBuildy.app";
 
 const PLATFORM_LABEL: Record<Platform, string> = {
   windows: "Windows",
@@ -180,17 +179,6 @@ function WindowsSteps() {
 }
 
 function MacSteps() {
-  const [copied, setCopied] = useState(false);
-  const copy = () => {
-    navigator.clipboard
-      ?.writeText(QUARANTINE_CMD)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      })
-      .catch(() => {});
-  };
-
   return (
     <>
       {/* Since macOS 15 Sequoia, right-click → Open no longer bypasses Gatekeeper for apps that
@@ -205,21 +193,13 @@ function MacSteps() {
       <p className="mt-3 text-small text-muted">
         On macOS 14 Sonoma, right-click the app and choose Open instead.
       </p>
-      <p className="mt-3 text-small text-muted">If macOS says the app is damaged, run this in Terminal once:</p>
-      <div className="mt-2 flex items-stretch gap-2">
-        <code className="min-w-0 flex-1 break-all rounded-xl border border-line bg-ink px-3 py-2.5 font-mono text-[0.8rem] leading-6 text-text">
-          {QUARANTINE_CMD}
-        </code>
-        <button
-          type="button"
-          onClick={copy}
-          aria-label={copied ? "Copied" : "Copy the command"}
-          className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-line px-3 text-small text-text transition-colors hover:border-orange/60 ${focusRing}`}
-        >
-          {copied ? <Check className="size-4 text-orange" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
-          {copied ? "Copied" : "Copy"}
-        </button>
-      </div>
+      <p className="mt-3 text-small text-muted">
+        Stuck?{" "}
+        <a href={ISSUES_URL} target="_blank" rel="noopener noreferrer" className={`${linkClass} ${focusRing}`}>
+          Open an issue on GitHub
+        </a>{" "}
+        and I&rsquo;ll help.
+      </p>
       <p className="mt-3 text-small text-muted">
         macOS will also ask for Screen Recording (called Screen &amp; System Audio Recording on newer macOS) and
         Accessibility permission. MyBuildy explains each one when it
