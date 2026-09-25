@@ -9,8 +9,9 @@
 //     stored, never logged. (Serverless instances don't share memory, so the limit is per
 //     instance: a speed bump against floods, not a hard quota.)
 //   - There is no GET or any other read endpoint: only POST is exported.
-//   - If Supabase isn't configured or is unreachable, the request still "succeeds" (204). The
-//     download never waits on this route anyway, but the form must never look broken.
+//   - 201 when the row was stored. If Supabase isn't configured or the insert fails, the
+//     problem is logged and the answer is 202 (accepted, not stored): the download never
+//     depends on this route, but the reason is in the server logs.
 //
 // The payload keeps the form's field names (build, self); they map to the columns building and
 // skill_level here, at the storage boundary.
@@ -47,7 +48,8 @@ function overLimit(key: string, now: number): boolean {
   return entry.count > RATE_LIMIT;
 }
 
-const noContent = () => new Response(null, { status: 204 });
+const stored = () => new Response(null, { status: 201 });
+const notStored = () => new Response(null, { status: 202 });
 
 export async function POST(req: Request): Promise<Response> {
   if (!(req.headers.get("content-type") ?? "").toLowerCase().startsWith("application/json")) {
@@ -68,8 +70,8 @@ export async function POST(req: Request): Promise<Response> {
 
   const db = getSupabase();
   if (!db) {
-    console.warn("[signup] Supabase is not configured; answer not stored");
-    return noContent();
+    console.error("[signup] Supabase is not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY); answer not stored");
+    return notStored();
   }
 
   try {
@@ -81,9 +83,13 @@ export async function POST(req: Request): Promise<Response> {
       agents: answers.agents,
       skill_level: answers.self,
     });
-    if (error) console.warn(`[signup] Supabase insert failed: ${error.code || "unknown code"}`);
+    if (error) {
+      console.error(`[signup] Supabase insert failed: ${error.code || "unknown code"}`);
+      return notStored();
+    }
+    return stored();
   } catch (error) {
-    console.warn("[signup] Supabase insert failed:", error instanceof Error ? error.name : "unknown error");
+    console.error("[signup] Supabase insert failed:", error instanceof Error ? error.name : "unknown error");
+    return notStored();
   }
-  return noContent();
 }

@@ -17,9 +17,9 @@ export const FEATURES: Feature[] = [
     image: { src: "/images/buildy-idle.png", alt: "Buildy standing and smiling, ready to explain", kind: "pose", width: 512, height: 768 },
   },
   {
-    title: "The next prompt, ready to send",
-    line: "He writes it, you read it, one click sends it to your coding agent’s window.",
-    image: { src: "/images/screens/guidance-panel.png", alt: "Guidance panel showing a plain-English summary, an on-track status, and the next prompt with a Send button", kind: "screen", width: 525, height: 593 },
+    title: "The next prompt, ready to paste",
+    line: "He writes it, you read it, one click pastes it into your coding agent’s window. You press Enter.",
+    image: { src: "/images/screens/guidance-panel.png", alt: "Guidance panel showing a plain-English summary, an on-track status, and the next prompt with a Paste into terminal button", kind: "screen", width: 525, height: 593 },
   },
   {
     title: "Checks that it actually worked",

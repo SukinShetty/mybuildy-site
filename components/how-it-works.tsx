@@ -10,7 +10,7 @@ const steps = [
     title: "Read what just happened",
     body: "Plain English every time the agent finishes a step, plus whether you are still on track.",
   },
-  { title: "Send the next prompt", body: "He writes it, you read it, one click sends it into your coding agent’s window." },
+  { title: "Paste the next prompt", body: "He writes it, you read it, one click pastes it into your coding agent’s window. You press Enter." },
 ];
 
 export function HowItWorks() {

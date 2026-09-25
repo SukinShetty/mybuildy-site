@@ -58,7 +58,7 @@ export function DemoVideo() {
                   <span className="flex size-10 items-center justify-center rounded-full bg-text/10">
                     <Play className="size-5 fill-current text-muted" aria-hidden="true" />
                   </span>
-                  Demo video coming today
+                  Demo video coming soon
                 </button>
               )}
             </div>

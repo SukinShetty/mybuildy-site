@@ -41,7 +41,18 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {/* Lets CSS hide scroll-reveal content only when JavaScript will reveal it. */}
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
       </head>
-      <body>{children}</body>
+      <body>
+        {/* A download button clicked before the page's script is ready must not be lost (the
+            buttons are plain <button>s, never direct file links, so nothing downloads without the
+            form). Remember the click; DownloadButtons replays it once it is ready. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "document.addEventListener('click',function(e){if(window.__mbDownloadsReady)return;var t=e.target&&e.target.closest&&e.target.closest('[data-download]');if(!t)return;e.preventDefault();window.__mbEarlyDownload={platform:t.getAttribute('data-download'),owner:t.getAttribute('data-download-owner')};},true);",
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

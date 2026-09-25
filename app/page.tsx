@@ -116,8 +116,8 @@ export default async function Home() {
                 </p>
                 <p>
                   He reads what just happened and says it back to you in plain English. He tells you whether you are
-                  still heading toward what you asked for. He writes the next prompt for you, and sends it when you
-                  click.
+                  still heading toward what you asked for. He writes the next prompt for you and pastes it in when you
+                  click. You press Enter.
                 </p>
                 <p>
                   When the agent finishes something, he checks whether it actually worked. When a decision needs a

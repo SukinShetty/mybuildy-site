@@ -46,8 +46,8 @@ type Props = {
   version?: string;
   /** Show the questions first (this browser hasn't submitted yet). */
   askFirst: boolean;
-  /** Save the answers and start the download. Never throws, never blocks. */
-  onSubmit: (answers: SignupPayload) => void;
+  /** Store the answers (waiting a few seconds at most), then start the download. Never throws. */
+  onSubmit: (answers: SignupPayload) => Promise<void> | void;
   /** The download button that opened the modal; focus returns there on close. */
   returnFocus: HTMLElement | null;
 };
@@ -84,8 +84,8 @@ export default function DownloadGuide({ open, onOpenChange, platform, downloadUr
             <Questions
               headingRef={headingRef}
               platform={platform}
-              onSubmit={(answers) => {
-                onSubmit(answers);
+              onSubmit={async (answers) => {
+                await onSubmit(answers); // stored (or given up on after a few seconds), download started
                 setSubmitted(true);
               }}
             />
@@ -216,8 +216,9 @@ function Questions({
 }: {
   headingRef: React.RefObject<HTMLHeadingElement | null>;
   platform: Platform;
-  onSubmit: (answers: SignupPayload) => void;
+  onSubmit: (answers: SignupPayload) => Promise<void>;
 }) {
+  const [sending, setSending] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [build, setBuild] = useState<string[]>([]);
@@ -244,7 +245,9 @@ function Questions({
       formRef.current?.querySelector<HTMLElement>(`[data-field="${first}"]`)?.focus();
       return;
     }
-    onSubmit({ name: name.trim(), email: email.trim(), build, agents, self, platform });
+    if (sending) return;
+    setSending(true);
+    void onSubmit({ name: name.trim(), email: email.trim(), build, agents, self, platform }).finally(() => setSending(false));
   };
 
   const inputClass = `mt-2 block min-h-12 w-full rounded-xl border bg-ink px-4 text-body text-text placeholder:text-muted/70 transition-colors hover:border-orange/40 focus:border-orange ${focusRing}`;
@@ -346,7 +349,7 @@ function Questions({
           ready ? "bg-orange text-ink hover:bg-amber" : "cursor-not-allowed bg-orange/35 text-ink/70"
         }`}
       >
-        Submit and download
+        {sending ? "Starting your download…" : "Submit and download"}
       </button>
       {/* Opens in a new tab so the half-filled form isn't lost. */}
       <p className="mt-3 text-center text-small text-muted">
