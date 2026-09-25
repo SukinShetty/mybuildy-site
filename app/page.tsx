@@ -303,6 +303,11 @@ export default async function Home() {
                   Privacy
                 </Link>
               </li>
+              <li>
+                <Link href="/terms" className="transition-colors hover:text-text">
+                  Terms
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>

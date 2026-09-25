@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { REPO_URL } from "@/lib/site";
+import { CONTACT_EMAIL, REPO_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy — MyBuildy",
@@ -56,6 +56,24 @@ export default function PrivacyPage() {
               open an issue on GitHub
             </a>
             .
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-note font-bold text-text">Deleting your data or stopping emails</h2>
+          <p className="mt-3">
+            Write to{" "}
+            <a href={`mailto:${CONTACT_EMAIL}`} className={link}>
+              {CONTACT_EMAIL}
+            </a>{" "}
+            and your details will be removed from the database, and the emails will stop.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-note font-bold text-text">Who holds your data</h2>
+          <p className="mt-3">
+            Your answers are kept in a private Supabase database, readable only by MyBuildy&rsquo;s owner.
           </p>
         </section>
 

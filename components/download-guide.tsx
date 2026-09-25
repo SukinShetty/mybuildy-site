@@ -348,6 +348,15 @@ function Questions({
       >
         Submit and download
       </button>
+      {/* Opens in a new tab so the half-filled form isn't lost. */}
+      <p className="mt-3 text-center text-small text-muted">
+        By downloading you agree to the{" "}
+        <a href="/terms" target="_blank" rel="noopener" className={`${linkClass} ${focusRing}`}>
+          Terms
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+        .
+      </p>
     </form>
   );
 }

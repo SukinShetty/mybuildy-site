@@ -11,3 +11,6 @@ export const DESCRIPTION =
 
 /** Downloads always go through mybuildy.com, never straight to GitHub (app/download/[platform]). */
 export const downloadPath = (platform: "windows" | "mac-arm64" | "mac-x64") => `/download/${platform}`;
+
+// Public contact for questions, data deletion and unsubscribing (shown on /terms and /privacy).
+export const CONTACT_EMAIL = "support@mybuildy.com";
