@@ -3,13 +3,10 @@
 import { ChevronDown, Download } from "lucide-react";
 import { useRef, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { DownloadAsset } from "@/lib/github";
 import type { Platform } from "@/lib/signup";
+import { downloadPath } from "@/lib/site";
 
 type Props = {
-  macArm?: DownloadAsset;
-  macIntel?: DownloadAsset;
-  fallbackUrl: string;
   className: string;
   attention: React.HTMLAttributes<HTMLElement>;
   /** Called from a DMG link's click. The handler decides whether to let the download start (it
@@ -18,16 +15,16 @@ type Props = {
 };
 
 /** "Download for Mac" with a popover choosing between the two DMGs. Loaded lazily: it pulls in base-ui. */
-export default function MacDownloadMenu({ macArm, macIntel, fallbackUrl, className, attention, onDownload }: Props) {
+export default function MacDownloadMenu({ className, attention, onDownload }: Props) {
   const armRef = useRef<HTMLAnchorElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
 
   // The menu closes and the download modal opens, returning focus to the Mac button when it is
-  // dismissed. Without an asset the link is the releases page and simply navigates.
-  const downloaded = (platform: Platform, asset?: DownloadAsset) => (e: React.MouseEvent) => {
+  // dismissed. Links go through mybuildy.com (/download/*), never straight to GitHub.
+  const downloaded = (platform: Platform) => (e: React.MouseEvent) => {
     setOpen(false);
-    if (asset) onDownload?.(platform, asset.url, triggerRef.current, e);
+    onDownload?.(platform, downloadPath(platform), triggerRef.current, e);
   };
 
   return (
@@ -46,15 +43,15 @@ export default function MacDownloadMenu({ macArm, macIntel, fallbackUrl, classNa
         <p className="px-3 pb-1 pt-2 text-small text-muted">Which Mac do you have?</p>
         <a
           ref={armRef}
-          href={macArm?.url ?? fallbackUrl}
-          onClick={downloaded("mac-arm64", macArm)}
+          href={downloadPath("mac-arm64")}
+          onClick={downloaded("mac-arm64")}
           className="block rounded-xl border border-orange/50 bg-orange/10 px-3 py-3 text-body font-bold hover:bg-orange/15"
         >
           Apple Silicon (M1 and later)
         </a>
         <a
-          href={macIntel?.url ?? fallbackUrl}
-          onClick={downloaded("mac-x64", macIntel)}
+          href={downloadPath("mac-x64")}
+          onClick={downloaded("mac-x64")}
           className="block rounded-xl border border-transparent px-3 py-3 text-body hover:border-line hover:bg-white/5"
         >
           Intel

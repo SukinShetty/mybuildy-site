@@ -1,11 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Download } from "lucide-react";
+import { ChevronDown, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import { formatSize, type Downloads } from "@/lib/github";
 import type { Platform, SignupPayload } from "@/lib/signup";
-import { RELEASES_URL } from "@/lib/site";
+import { downloadPath } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 const base =
@@ -15,20 +15,21 @@ const secondary = "border border-line bg-surface text-text hover:border-orange/6
 
 type Attention = React.HTMLAttributes<HTMLElement>;
 
-/** Plain link to the releases page. Also stands in for the Mac menu while that loads, so it always works. */
-function MacLink({ href, className, attention }: { href: string; className: string; attention: Attention }) {
+/** Same look as the Mac menu's trigger, shown for the moment before the menu's code has loaded. */
+function MacPlaceholder({ className }: { className: string }) {
   return (
-    <a href={href} className={className} {...attention}>
+    <button type="button" className={className}>
       <Download className="size-5" aria-hidden="true" />
       Download for Mac
-    </a>
+      <ChevronDown className="size-4 opacity-70" aria-hidden="true" />
+    </button>
   );
 }
 
-// Lazy: the popover pulls in base-ui. Until it loads, the Mac button is a working link to the releases page.
+// Lazy: the popover pulls in base-ui.
 const MacDownloadMenu = dynamic(() => import("@/components/mac-download-menu"), {
   ssr: false,
-  loading: () => <MacLink href={RELEASES_URL} className={cn(base, secondary)} attention={{}} />,
+  loading: () => <MacPlaceholder className={cn(base, secondary)} />,
 });
 
 // Lazy: the download modal is only fetched once someone points at, focuses or clicks a button.
@@ -53,7 +54,8 @@ const markSubmitted = () => {
   }
 };
 
-/** Start a download from script. Release assets are served as attachments, so the page stays put. */
+/** Start a download from script. /download/* redirects to the file, served as an attachment, so the page
+ *  stays put; if the file is unavailable it lands on the friendly page on mybuildy.com instead. */
 function startDownload(url: string) {
   const a = document.createElement("a");
   a.href = url;
@@ -90,7 +92,7 @@ type Props = {
 type Guide = { platform: Platform; url: string; askFirst: boolean; returnFocus: HTMLElement | null };
 
 export function DownloadButtons({ downloads, onAttention, note, className }: Props) {
-  const { windows, macArm, macIntel, version, fallbackUrl } = downloads;
+  const { windows, macArm, macIntel, version } = downloads;
   const [isMac, setIsMac] = useState(false);
   const [guide, setGuide] = useState<Guide | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -144,28 +146,17 @@ export function DownloadButtons({ downloads, onAttention, note, className }: Pro
   return (
     <div className={className}>
       <div className="flex flex-col gap-3 sm:flex-row">
+        {/* Downloads go through mybuildy.com (/download/*), which never sends anyone to a GitHub page. */}
         <a
-          href={windows?.url ?? fallbackUrl}
+          href={downloadPath("windows")}
           className={winClass}
           {...attention}
-          // Only a real installer opens the modal; the releases-page fallback just navigates.
-          onClick={windows ? (e) => openGuide("windows", windows.url, e.currentTarget, e) : undefined}
+          onClick={(e) => openGuide("windows", downloadPath("windows"), e.currentTarget, e)}
         >
           <Download className="size-5" aria-hidden="true" />
           Download for Windows
         </a>
-        {macAsset ? (
-          <MacDownloadMenu
-            macArm={macArm}
-            macIntel={macIntel}
-            fallbackUrl={fallbackUrl}
-            className={macClass}
-            attention={attention}
-            onDownload={openGuide}
-          />
-        ) : (
-          <MacLink href={fallbackUrl} className={macClass} attention={attention} />
-        )}
+        <MacDownloadMenu className={macClass} attention={attention} onDownload={openGuide} />
       </div>
       {note && <p className="mt-3 text-small text-muted">{note}</p>}
       {version && <p className={cn("text-small text-muted", note ? "mt-1.5" : "mt-3")}>{[version, ...sizes].join(" · ")}</p>}

@@ -13,7 +13,8 @@ import { TopBar } from "@/components/top-bar";
 import { getDownloads, getStarCount } from "@/lib/github";
 import { LICENSE_URL, RELEASES_URL, REPO_URL } from "@/lib/site";
 
-export const revalidate = 3600;
+// The version and size line follows the release lookup, refreshed at most every 60 seconds.
+export const revalidate = 60;
 
 function Section({
   id,
