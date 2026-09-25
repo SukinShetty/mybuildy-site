@@ -1,4 +1,5 @@
-// POST /api/signup — stores one optional post-download answer set in Supabase (table public.signups).
+// POST /api/signup — stores the pre-download answers in Supabase (table public.signups).
+// Name and a valid email are required (lib/signup.ts); anything else is rejected with 400.
 //
 // Privacy rules enforced here:
 //   - Stores ONLY the validated answers and the platform chosen; the database adds the timestamp.
@@ -8,8 +9,8 @@
 //     stored, never logged. (Serverless instances don't share memory, so the limit is per
 //     instance: a speed bump against floods, not a hard quota.)
 //   - There is no GET or any other read endpoint: only POST is exported.
-//   - If Supabase isn't configured or is unreachable, the request still "succeeds" (204). The form
-//     must never look broken to someone who just downloaded the app.
+//   - If Supabase isn't configured or is unreachable, the request still "succeeds" (204). The
+//     download never waits on this route anyway, but the form must never look broken.
 //
 // The payload keeps the form's field names (build, self); they map to the columns building and
 // skill_level here, at the storage boundary.

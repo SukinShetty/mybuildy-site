@@ -23,10 +23,10 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-note font-bold text-text">What this website stores</h2>
           <p className="mt-3">
-            Nothing about you, except what you choose to type in. After you download MyBuildy, a panel offers a few
-            optional questions: your first name, your email, what you hope to build, which coding agent you use and
-            how you&rsquo;d describe yourself. If you answer and press Submit, those answers are saved together with
-            which download you chose (Windows or Mac) and the time. Skip them and nothing is saved.
+            Before your first download, MyBuildy asks for your first name and your email, plus three quick questions:
+            what you hope to build, which coding agent you use and how you&rsquo;d describe yourself. When you press
+            Submit and download, those answers are saved in a private database together with which download you
+            chose (Windows or Mac) and the time. Nothing else about you is stored.
           </p>
           <p className="mt-3">
             Your IP address and browser details are <strong>not</strong> saved with your answers. To stop the form
@@ -34,8 +34,8 @@ export default function PrivacyPage() {
             that is kept only in the server&rsquo;s memory and is never written down.
           </p>
           <p className="mt-3">
-            Your browser remembers one thing locally: that you&rsquo;ve already seen the questions, so they
-            don&rsquo;t show again. That stays on your device and is never sent anywhere.
+            Your browser remembers one thing locally: that you&rsquo;ve already answered, so later downloads start
+            straight away without asking again. That stays on your device and is never sent anywhere.
           </p>
         </section>
 
@@ -49,8 +49,8 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-note font-bold text-text">Your email</h2>
           <p className="mt-3">
-            If you give it, your email is used only to tell you about new MyBuildy releases. No newsletter, never
-            shared or sold, and you can unsubscribe any time. To have your answers deleted, reply to any update email
+            Your name and email are used only for MyBuildy release announcements. No newsletter, never shared or
+            sold, and you can unsubscribe any time. To have your answers deleted, reply to any update email
             or{" "}
             <a href={`${REPO_URL}/issues`} className={link}>
               open an issue on GitHub
@@ -67,8 +67,7 @@ export default function PrivacyPage() {
               run and protect the service. They are not used to track you.
             </li>
             <li>
-              If you answer the optional questions, your answers are stored in a private Supabase database that only
-              this site&rsquo;s server can read.
+              Your answers are stored in a private Supabase database that only this site&rsquo;s server can read.
             </li>
             <li>The installers download from GitHub, where the source code and releases live.</li>
             <li>

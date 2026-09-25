@@ -12,8 +12,9 @@ type Props = {
   fallbackUrl: string;
   className: string;
   attention: React.HTMLAttributes<HTMLElement>;
-  /** Called AFTER a DMG link's click (never prevented), to show the post-download panel. */
-  onDownload?: (platform: Platform, returnFocus: HTMLElement | null) => void;
+  /** Called from a DMG link's click. The handler decides whether to let the download start (it
+   *  prevents it until the questions are answered) and opens the download modal. */
+  onDownload?: (platform: Platform, url: string, returnFocus: HTMLElement | null, e: React.MouseEvent) => void;
 };
 
 /** "Download for Mac" with a popover choosing between the two DMGs. Loaded lazily: it pulls in base-ui. */
@@ -22,11 +23,11 @@ export default function MacDownloadMenu({ macArm, macIntel, fallbackUrl, classNa
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
 
-  // The link keeps its default action (the browser starts the DMG); then the menu closes and
-  // the panel opens, returning focus to the Mac button when it is dismissed.
-  const downloaded = (platform: Platform, asset?: DownloadAsset) => () => {
+  // The menu closes and the download modal opens, returning focus to the Mac button when it is
+  // dismissed. Without an asset the link is the releases page and simply navigates.
+  const downloaded = (platform: Platform, asset?: DownloadAsset) => (e: React.MouseEvent) => {
     setOpen(false);
-    if (asset) onDownload?.(platform, triggerRef.current);
+    if (asset) onDownload?.(platform, asset.url, triggerRef.current, e);
   };
 
   return (

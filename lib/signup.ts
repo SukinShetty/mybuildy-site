@@ -1,4 +1,4 @@
-// The optional post-download questions: one source of truth for the options, shared by the
+// The pre-download questions: one source of truth for the options and rules, shared by the
 // form (components/download-guide.tsx) and the route that stores answers (app/api/signup).
 // Dependency-free validation: anything that isn't exactly this shape is rejected.
 
@@ -58,9 +58,9 @@ export function parseSignup(body: unknown): SignupPayload | null {
   if (keys.length !== KEYS.length || !KEYS.every((k) => keys.includes(k))) return null;
 
   const { name, email, build, agents, self, platform } = obj;
-  if (typeof name !== "string" || name.length > MAX_NAME) return null;
-  if (typeof email !== "string" || email.length > MAX_EMAIL) return null;
-  if (email.trim() && !EMAIL_SHAPE.test(email.trim())) return null;
+  // Name and email are required.
+  if (typeof name !== "string" || !name.trim() || name.length > MAX_NAME) return null;
+  if (typeof email !== "string" || email.length > MAX_EMAIL || !EMAIL_SHAPE.test(email.trim())) return null;
   if (!isStringArrayOf(build, BUILD_OPTIONS)) return null;
   if (!isStringArrayOf(agents, AGENT_OPTIONS)) return null;
   if (self !== null && (typeof self !== "string" || !(SELF_OPTIONS as readonly string[]).includes(self))) return null;
@@ -69,7 +69,20 @@ export function parseSignup(body: unknown): SignupPayload | null {
   return { name: name.trim(), email: email.trim(), build, agents, self: self as string | null, platform: platform as Platform };
 }
 
-/** True when nothing was answered — the form then just closes without sending anything. */
-export function isBlank(p: Omit<SignupPayload, "platform">): boolean {
-  return !p.name.trim() && !p.email.trim() && p.build.length === 0 && p.agents.length === 0 && p.self === null;
+export type SignupField = "name" | "email" | "build" | "agents" | "self";
+
+/**
+ * What the form needs before it will submit, as friendly messages keyed by field.
+ * Empty object = ready. Stricter than the route on purpose: the form asks for at least one
+ * answer per question; the route only insists on name and email.
+ */
+export function formProblems(p: Omit<SignupPayload, "platform">): Partial<Record<SignupField, string>> {
+  const problems: Partial<Record<SignupField, string>> = {};
+  if (!p.name.trim()) problems.name = "Please add your first name.";
+  if (!p.email.trim()) problems.email = "Please add your email.";
+  else if (!EMAIL_SHAPE.test(p.email.trim())) problems.email = "That email doesn’t look quite right.";
+  if (p.build.length === 0) problems.build = "Tick at least one.";
+  if (p.agents.length === 0) problems.agents = "Tick at least one.";
+  if (p.self === null) problems.self = "Choose the one that fits best.";
+  return problems;
 }

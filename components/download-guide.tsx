@@ -1,23 +1,26 @@
 "use client";
 
 /**
- * The post-download panel: an install warning for the platform just downloaded (always), and a
- * few optional questions (only the first time this browser downloads). Opened AFTER the
- * download link has done its normal job — nothing here can block or delay the file.
+ * The download modal. The first time a browser downloads, it opens BEFORE anything downloads,
+ * with a few questions; "Submit and download" saves the answers, starts the file and swaps the
+ * form for the install warning. After that (remembered in localStorage by DownloadButtons) it
+ * opens straight on the install warning while the download runs. Closing the form starts nothing.
  *
  * Loaded lazily by DownloadButtons. base-ui's Dialog provides the modal behaviour: focus trap,
- * Escape and outside-click to dismiss, focus returned to the download link on close.
+ * Escape and outside-click to dismiss, focus returned to the download button on close.
  */
 
 import { Dialog } from "@base-ui/react/dialog";
 import { Check, Copy, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AGENT_OPTIONS,
   BUILD_OPTIONS,
   SELF_OPTIONS,
-  isBlank,
+  formProblems,
   type Platform,
+  type SignupField,
+  type SignupPayload,
 } from "@/lib/signup";
 import { REPO_URL } from "@/lib/site";
 
@@ -39,15 +42,27 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   platform: Platform;
+  /** Direct link to the installer, for "If it didn't, click here". */
+  downloadUrl: string;
   version?: string;
-  askQuestions: boolean;
-  /** The download link that opened the panel; focus returns there on close. */
+  /** Show the questions first (this browser hasn't submitted yet). */
+  askFirst: boolean;
+  /** Save the answers and start the download. Never throws, never blocks. */
+  onSubmit: (answers: SignupPayload) => void;
+  /** The download button that opened the modal; focus returns there on close. */
   returnFocus: HTMLElement | null;
 };
 
-export default function DownloadGuide({ open, onOpenChange, platform, version, askQuestions, returnFocus }: Props) {
+export default function DownloadGuide({ open, onOpenChange, platform, downloadUrl, version, askFirst, onSubmit, returnFocus }: Props) {
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const isMac = platform !== "windows";
+  const [submitted, setSubmitted] = useState(false);
+  const showForm = askFirst && !submitted;
+
+  // When the form gives way to the instructions, move focus to the new heading so keyboard and
+  // screen-reader users land on the install steps.
+  useEffect(() => {
+    if (submitted) headingRef.current?.focus();
+  }, [submitted]);
 
   return (
     <Dialog.Root open={open} onOpenChange={(next) => onOpenChange(next)}>
@@ -66,30 +81,53 @@ export default function DownloadGuide({ open, onOpenChange, platform, version, a
             <X className="size-5" aria-hidden="true" />
           </Dialog.Close>
 
-          {/* The install warning: first, prominent, always shown. */}
-          <section className="mr-10 rounded-2xl border-2 border-orange bg-orange/10 p-4 sm:mr-8 sm:p-5">
-            <p className="text-small text-muted">
-              MyBuildy {version ? `${version} ` : ""}for {PLATFORM_LABEL[platform]} is downloading
-            </p>
-            <Dialog.Title
-              ref={headingRef}
-              tabIndex={-1}
-              className="mt-1 text-[1.35rem] font-bold leading-tight tracking-[-0.01em] outline-none sm:text-note"
-            >
-              {isMac ? "One more step: macOS will warn you" : "One more step: Windows will warn you"}
-            </Dialog.Title>
-            {isMac ? <MacSteps /> : <WindowsSteps />}
-            <p className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-small text-muted">
-              <a href={REPO_URL} target="_blank" rel="noopener noreferrer" className={`${linkClass} ${focusRing}`}>
-                View the source
-              </a>
-              <a href={CHECKSUM_URL} target="_blank" rel="noopener noreferrer" className={`${linkClass} ${focusRing}`}>
-                Verify the checksum
-              </a>
-            </p>
-          </section>
-
-          {askQuestions && <Questions platform={platform} onDone={() => onOpenChange(false)} />}
+          {showForm ? (
+            <Questions
+              headingRef={headingRef}
+              platform={platform}
+              onSubmit={(answers) => {
+                onSubmit(answers);
+                setSubmitted(true);
+              }}
+            />
+          ) : (
+            <>
+              {/* The install warning: first, prominent, always shown once the file is on its way. */}
+              <section className="mr-10 rounded-2xl border-2 border-orange bg-orange/10 p-4 sm:mr-8 sm:p-5">
+                <p role="status" className="text-small text-muted">
+                  Your download of MyBuildy {version ? `${version} ` : ""}for {PLATFORM_LABEL[platform]} has started.
+                  If it didn&rsquo;t,{" "}
+                  <a href={downloadUrl} className={`${linkClass} ${focusRing}`}>
+                    click here
+                  </a>
+                  .
+                </p>
+                <Dialog.Title
+                  ref={headingRef}
+                  tabIndex={-1}
+                  className="mt-2 text-[1.35rem] font-bold leading-tight tracking-[-0.01em] outline-none sm:text-note"
+                >
+                  {platform === "windows" ? "One more step: Windows will warn you" : "One more step: macOS will warn you"}
+                </Dialog.Title>
+                {platform === "windows" ? <WindowsSteps /> : <MacSteps />}
+                <p className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-small text-muted">
+                  <a href={REPO_URL} target="_blank" rel="noopener noreferrer" className={`${linkClass} ${focusRing}`}>
+                    View the source
+                  </a>
+                  <a href={CHECKSUM_URL} target="_blank" rel="noopener noreferrer" className={`${linkClass} ${focusRing}`}>
+                    Verify the checksum
+                  </a>
+                </p>
+              </section>
+              <p className="mt-6 text-body text-text/85">
+                {submitted ? "Thank you — that really helps. " : ""}If it doesn&rsquo;t install, tell me —{" "}
+                <a href={ISSUES_URL} target="_blank" rel="noopener noreferrer" className={`${linkClass} ${focusRing}`}>
+                  open an issue on GitHub
+                </a>
+                .
+              </p>
+            </>
+          )}
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>
@@ -183,145 +221,188 @@ function MacSteps() {
   );
 }
 
-function Questions({ platform, onDone }: { platform: Platform; onDone: () => void }) {
+function Questions({
+  headingRef,
+  platform,
+  onSubmit,
+}: {
+  headingRef: React.RefObject<HTMLHeadingElement | null>;
+  platform: Platform;
+  onSubmit: (answers: SignupPayload) => void;
+}) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [build, setBuild] = useState<string[]>([]);
   const [agents, setAgents] = useState<string[]>([]);
   const [self, setSelf] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+  // Messages appear only once someone tries to submit, then update live as they fix things.
+  const [tried, setTried] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const answers = { name, email, build, agents, self };
+  const problems = formProblems(answers);
+  const ready = Object.keys(problems).length === 0;
+  const shown = (field: SignupField) => (tried ? problems[field] : undefined);
 
   const toggle = (list: string[], set: (v: string[]) => void, value: string) =>
     set(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const answers = { name, email, build, agents, self };
-    if (isBlank(answers)) {
-      onDone();
+    if (!ready) {
+      setTried(true);
+      // Take the visitor to the first thing that still needs an answer.
+      const first = (["name", "email", "build", "agents", "self"] as const).find((f) => problems[f]);
+      formRef.current?.querySelector<HTMLElement>(`[data-field="${first}"]`)?.focus();
       return;
     }
-    // Fire and forget: whatever the server says, the visitor sees a thank-you.
-    fetch("/api/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...answers, platform }),
-      keepalive: true,
-    }).catch(() => {});
-    setSubmitted(true);
+    onSubmit({ name: name.trim(), email: email.trim(), build, agents, self, platform });
   };
 
-  if (submitted) {
-    return (
-      <div className="mt-7" role="status">
-        <p className="text-note font-bold">Thank you — that really helps.</p>
-        <p className="mt-3 text-body text-text/85">
-          If it doesn&rsquo;t install, tell me —{" "}
-          <a href={ISSUES_URL} target="_blank" rel="noopener noreferrer" className={`${linkClass} ${focusRing}`}>
-            open an issue on GitHub
-          </a>
-          .
-        </p>
-      </div>
-    );
-  }
-
-  const inputClass = `mt-2 block min-h-12 w-full rounded-xl border border-line bg-ink px-4 text-body text-text placeholder:text-muted/70 transition-colors hover:border-orange/40 focus:border-orange ${focusRing}`;
+  const inputClass = `mt-2 block min-h-12 w-full rounded-xl border bg-ink px-4 text-body text-text placeholder:text-muted/70 transition-colors hover:border-orange/40 focus:border-orange ${focusRing}`;
+  const errorClass = "mt-2 block text-small text-orange";
 
   return (
-    <form onSubmit={onSubmit} className="mt-8">
-      <h3 className="text-[1.25rem] font-bold leading-tight">While that downloads — a few quick questions?</h3>
-      <p className="mt-1.5 text-small text-muted">So I know who I&rsquo;m building for. Optional, and no account needed.</p>
+    <form ref={formRef} onSubmit={onFormSubmit} noValidate>
+      <Dialog.Title
+        ref={headingRef}
+        tabIndex={-1}
+        className="mr-10 text-[1.35rem] font-bold leading-tight tracking-[-0.01em] outline-none sm:mr-8 sm:text-note"
+      >
+        Before you download — a few quick questions
+      </Dialog.Title>
+      <Dialog.Description className="mt-1.5 text-small text-muted">
+        So I know who I&rsquo;m building for. Takes 20 seconds.
+      </Dialog.Description>
 
       <div className="mt-6 space-y-6">
         <label className="block">
-          <span className="text-small font-bold">Name</span>
+          <span className="text-small font-bold">First name</span>
           <input
+            data-field="name"
             type="text"
             name="name"
             autoComplete="given-name"
             maxLength={80}
-            placeholder="First name"
+            required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={inputClass}
+            aria-invalid={shown("name") ? true : undefined}
+            aria-describedby={shown("name") ? "signup-name-error" : undefined}
+            className={`${inputClass} ${shown("name") ? "border-orange" : "border-line"}`}
           />
+          {shown("name") && (
+            <span id="signup-name-error" className={errorClass}>
+              {shown("name")}
+            </span>
+          )}
         </label>
 
         <label className="block">
           <span className="text-small font-bold">Email</span>
           <input
+            data-field="email"
             type="email"
             name="email"
             autoComplete="email"
             inputMode="email"
             maxLength={254}
+            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            aria-describedby="signup-email-note"
-            className={inputClass}
+            aria-invalid={shown("email") ? true : undefined}
+            aria-describedby={shown("email") ? "signup-email-error signup-email-note" : "signup-email-note"}
+            className={`${inputClass} ${shown("email") ? "border-orange" : "border-line"}`}
           />
+          {shown("email") && (
+            <span id="signup-email-error" className={errorClass}>
+              {shown("email")}
+            </span>
+          )}
           <span id="signup-email-note" className="mt-2 block text-small text-muted">
             Only for MyBuildy updates. No newsletter, no sharing, unsubscribe any time.
           </span>
         </label>
 
-        <PillGroup legend="What are you hoping to build?" hint="Tick any">
-          {BUILD_OPTIONS.map((o) => (
-            <Pill key={o} type="checkbox" name="build" checked={build.includes(o)} onChange={() => toggle(build, setBuild, o)}>
+        <PillGroup field="build" legend="What are you hoping to build?" hint="Tick at least one" error={shown("build")}>
+          {BUILD_OPTIONS.map((o, i) => (
+            <Pill key={o} field={i === 0 ? "build" : undefined} type="checkbox" name="build" checked={build.includes(o)} onChange={() => toggle(build, setBuild, o)}>
               {o}
             </Pill>
           ))}
         </PillGroup>
 
-        <PillGroup legend="Which coding agent do you use?" hint="Tick any">
-          {AGENT_OPTIONS.map((o) => (
-            <Pill key={o} type="checkbox" name="agents" checked={agents.includes(o)} onChange={() => toggle(agents, setAgents, o)}>
+        <PillGroup field="agents" legend="Which coding agent do you use?" hint="Tick at least one" error={shown("agents")}>
+          {AGENT_OPTIONS.map((o, i) => (
+            <Pill key={o} field={i === 0 ? "agents" : undefined} type="checkbox" name="agents" checked={agents.includes(o)} onChange={() => toggle(agents, setAgents, o)}>
               {o}
             </Pill>
           ))}
         </PillGroup>
 
-        <PillGroup legend="How would you describe yourself?" hint="Choose one">
-          {SELF_OPTIONS.map((o) => (
-            <Pill key={o} type="radio" name="self" checked={self === o} onChange={() => setSelf(o)}>
+        <PillGroup field="self" legend="How would you describe yourself?" hint="Choose one" error={shown("self")}>
+          {SELF_OPTIONS.map((o, i) => (
+            <Pill key={o} field={i === 0 ? "self" : undefined} type="radio" name="self" checked={self === o} onChange={() => setSelf(o)}>
               {o}
             </Pill>
           ))}
         </PillGroup>
       </div>
 
-      {/* Submit and Skip carry equal visual weight: same size, same style. */}
-      <div className="mt-8 grid grid-cols-2 gap-3">
-        <button type="submit" className={`min-h-12 rounded-full border border-orange/70 px-5 text-body font-bold text-text transition-colors hover:bg-orange/10 ${focusRing}`}>
-          Submit
-        </button>
-        <button type="button" onClick={onDone} className={`min-h-12 rounded-full border border-orange/70 px-5 text-body font-bold text-text transition-colors hover:bg-orange/10 ${focusRing}`}>
-          Skip
-        </button>
-      </div>
+      {/* aria-disabled rather than disabled: it looks and reads as unavailable until the form is
+          complete, but a press still explains what's missing instead of doing nothing. */}
+      <button
+        type="submit"
+        aria-disabled={!ready}
+        className={`mt-8 min-h-12 w-full rounded-full px-5 text-body font-bold transition-colors ${focusRing} ${
+          ready ? "bg-orange text-ink hover:bg-amber" : "cursor-not-allowed bg-orange/35 text-ink/70"
+        }`}
+      >
+        Submit and download
+      </button>
     </form>
   );
 }
 
-function PillGroup({ legend, hint, children }: { legend: string; hint: string; children: React.ReactNode }) {
+function PillGroup({
+  field,
+  legend,
+  hint,
+  error,
+  children,
+}: {
+  field: SignupField;
+  legend: string;
+  hint: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  const errorId = `signup-${field}-error`;
   return (
-    <fieldset>
+    <fieldset aria-describedby={error ? errorId : undefined} aria-invalid={error ? true : undefined}>
       <legend className="text-small font-bold">
         {legend} <span className="font-normal text-muted">· {hint}</span>
       </legend>
       <div className="mt-3 flex flex-wrap gap-2">{children}</div>
+      {error && (
+        <p id={errorId} className="mt-2 text-small text-orange">
+          {error}
+        </p>
+      )}
     </fieldset>
   );
 }
 
 function Pill({
+  field,
   type,
   name,
   checked,
   onChange,
   children,
 }: {
+  /** Set on the first option of a group, so a failed submit can move focus to that group. */
+  field?: SignupField;
   type: "checkbox" | "radio";
   name: string;
   checked: boolean;
@@ -334,7 +415,7 @@ function Pill({
         checked ? "border-orange bg-orange/15 text-text" : "border-line text-text/85 hover:border-orange/50"
       }`}
     >
-      <input type={type} name={name} checked={checked} onChange={onChange} className="sr-only" />
+      <input data-field={field} type={type} name={name} checked={checked} onChange={onChange} className="sr-only" />
       {checked && <Check className="size-4 text-orange" aria-hidden="true" />}
       {children}
     </label>

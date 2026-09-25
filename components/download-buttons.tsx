@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import { formatSize, type Downloads } from "@/lib/github";
-import type { Platform } from "@/lib/signup";
+import type { Platform, SignupPayload } from "@/lib/signup";
 import { RELEASES_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -31,26 +31,52 @@ const MacDownloadMenu = dynamic(() => import("@/components/mac-download-menu"), 
   loading: () => <MacLink href={RELEASES_URL} className={cn(base, secondary)} attention={{}} />,
 });
 
-// Lazy: the post-download panel is only fetched once someone points at, focuses or clicks a button.
+// Lazy: the download modal is only fetched once someone points at, focuses or clicks a button.
 const loadGuide = () => import("@/components/download-guide");
 const DownloadGuide = dynamic(loadGuide, { ssr: false });
 
-// This browser has already seen the optional questions: show only the install steps from then on.
-const QUESTIONS_SEEN_KEY = "mybuildy.downloadQuestionsSeen";
-const readSeen = () => {
+// This browser has already answered the questions: from then on a download button downloads
+// straight away and the modal shows only the install steps.
+const SUBMITTED_KEY = "mybuildy.signupSubmitted";
+const readSubmitted = () => {
   try {
-    return localStorage.getItem(QUESTIONS_SEEN_KEY) === "1";
+    return localStorage.getItem(SUBMITTED_KEY) === "1";
   } catch {
     return false;
   }
 };
-const markSeen = () => {
+const markSubmitted = () => {
   try {
-    localStorage.setItem(QUESTIONS_SEEN_KEY, "1");
+    localStorage.setItem(SUBMITTED_KEY, "1");
   } catch {
-    // Private mode / storage blocked: the questions may simply show again next time.
+    // Private mode / storage blocked: the form may simply show again next time.
   }
 };
+
+/** Start a download from script. Release assets are served as attachments, so the page stays put. */
+function startDownload(url: string) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.rel = "noopener";
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+/** Save the answers without waiting on the result. keepalive lets it finish even as the download starts. */
+function saveAnswers(answers: SignupPayload) {
+  try {
+    fetch("/api/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(answers),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    // Never let saving get between someone and the file.
+  }
+}
 
 type Props = {
   downloads: Downloads;
@@ -61,7 +87,7 @@ type Props = {
   className?: string;
 };
 
-type Guide = { platform: Platform; askQuestions: boolean; returnFocus: HTMLElement | null };
+type Guide = { platform: Platform; url: string; askFirst: boolean; returnFocus: HTMLElement | null };
 
 export function DownloadButtons({ downloads, onAttention, note, className }: Props) {
   const { windows, macArm, macIntel, version, fallbackUrl } = downloads;
@@ -75,13 +101,23 @@ export function DownloadButtons({ downloads, onAttention, note, className }: Pro
     setIsMac(/Macintosh|Mac OS X/.test(ua) && !/iPhone|iPad/.test(ua));
   }, []);
 
-  // Called from a download link's click handler. The link is NOT prevented: the browser starts
-  // the file exactly as before, and the panel opens after.
-  const openGuide = (platform: Platform, from: HTMLElement | null) => {
-    const askQuestions = !readSeen();
-    if (askQuestions) markSeen();
-    setGuide({ platform, askQuestions, returnFocus: from });
+  // Called from a download link's click handler. The first time, the default action is prevented:
+  // nothing downloads until the form is submitted (closing it starts nothing). Once this browser
+  // has submitted, the link downloads as normal and the modal shows the install steps.
+  const openGuide = (platform: Platform, url: string, from: HTMLElement | null, e: React.MouseEvent) => {
+    const askFirst = !readSubmitted();
+    if (askFirst) e.preventDefault();
+    setGuide({ platform, url, askFirst, returnFocus: from });
     setGuideOpen(true);
+  };
+
+  // Submit: send the answers, start the file straight away, remember this browser. The save is
+  // never awaited, so a network or database problem can't keep anyone from the download.
+  const submit = (answers: SignupPayload) => {
+    if (!guide) return;
+    saveAnswers(answers);
+    startDownload(guide.url);
+    markSubmitted();
   };
 
   const warm = () => void loadGuide();
@@ -112,8 +148,8 @@ export function DownloadButtons({ downloads, onAttention, note, className }: Pro
           href={windows?.url ?? fallbackUrl}
           className={winClass}
           {...attention}
-          // Only a real installer download opens the panel; the releases-page fallback just navigates.
-          onClick={windows ? (e) => openGuide("windows", e.currentTarget) : undefined}
+          // Only a real installer opens the modal; the releases-page fallback just navigates.
+          onClick={windows ? (e) => openGuide("windows", windows.url, e.currentTarget, e) : undefined}
         >
           <Download className="size-5" aria-hidden="true" />
           Download for Windows
@@ -139,8 +175,10 @@ export function DownloadButtons({ downloads, onAttention, note, className }: Pro
           open={guideOpen}
           onOpenChange={setGuideOpen}
           platform={guide.platform}
+          downloadUrl={guide.url}
           version={version}
-          askQuestions={guide.askQuestions}
+          askFirst={guide.askFirst}
+          onSubmit={submit}
           returnFocus={guide.returnFocus}
         />
       )}
