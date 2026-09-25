@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { BuildyStates } from "@/components/buildy-states";
 import { DemoVideo } from "@/components/demo-video";
 import { DownloadButtons } from "@/components/download-buttons";
@@ -254,6 +255,11 @@ export default async function Home() {
                 <a href={LICENSE_URL} className="transition-colors hover:text-text">
                   MIT licence
                 </a>
+              </li>
+              <li>
+                <Link href="/privacy" className="transition-colors hover:text-text">
+                  Privacy
+                </Link>
               </li>
             </ul>
           </nav>

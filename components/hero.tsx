@@ -46,7 +46,12 @@ export function Hero({ downloads }: { downloads: Downloads }) {
           </p>
           <p className="mt-3 max-w-[34rem] text-body text-text">Free, open source, and it runs on your own computer.</p>
 
-          <DownloadButtons downloads={downloads} onAttention={setAttention} className="mt-9" />
+          <DownloadButtons
+            downloads={downloads}
+            onAttention={setAttention}
+            note="Windows and macOS will warn you on first run — the installers aren't signed yet. We'll show you what to click."
+            className="mt-9"
+          />
 
           <p className="mt-5 text-small text-muted">
             Free forever · Windows 10 and 11 · macOS 14 and later · You bring your own AI key
