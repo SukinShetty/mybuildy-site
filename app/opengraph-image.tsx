@@ -27,7 +27,7 @@ export default async function OpengraphImage() {
           <div style={{ fontSize: 76, lineHeight: 1.04, color: "#F4F2EF", marginTop: 20, letterSpacing: "-0.03em" }}>
             Your AI coding agent, finally explained.
           </div>
-          <div style={{ fontSize: 26, color: "#9A968F", marginTop: 28 }}>Free and open source · Windows and Mac</div>
+          <div style={{ fontSize: 26, color: "#9A968F", marginTop: 28 }}>Free and source-available · Windows and Mac</div>
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={robotSrc} width={440} height={660} style={{ position: "absolute", right: 60, top: -40 }} alt="" />

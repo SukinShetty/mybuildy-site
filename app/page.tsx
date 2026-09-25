@@ -40,7 +40,7 @@ function Section({
   );
 }
 
-const promises = ["Open source, MIT", "Your key, your model", "Memory stays on your machine", "No account, no subscription"];
+const promises = ["Source-available · Free to use", "Your key, your model", "Memory stays on your machine", "No account, no subscription"];
 
 // Outside accounts of the same problem, linked under "Why I built this".
 const evidence = [
@@ -239,6 +239,9 @@ export default async function Home() {
                 Before you start, you need two things: a coding agent such as Claude Code already installed, and an
                 API key from one AI provider.
               </p>
+              <p className="mt-4 max-w-[34rem] text-body text-text/85">
+                Free for anyone to use, including for work. You just can&rsquo;t resell it.
+              </p>
               <DownloadButtons downloads={downloads} className="mt-8" />
             </Reveal>
             <Reveal>
@@ -291,7 +294,7 @@ export default async function Home() {
               </li>
               <li>
                 <a href={LICENSE_URL} className="transition-colors hover:text-text">
-                  MIT licence
+                  PolyForm Shield licence
                 </a>
               </li>
               <li>

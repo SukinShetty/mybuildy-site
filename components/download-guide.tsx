@@ -172,8 +172,8 @@ function WindowsSteps() {
       </Dialog.Description>
       <p className="mt-3 text-small text-muted">
         This happens to every app that isn&rsquo;t signed with a paid certificate yet, not because anything is wrong
-        with the file. MyBuildy is open source — you can read every line of the code, and check the file&rsquo;s
-        SHA256 against the published checksum.
+        with the file. The source code is public — you can read every line of it, and check the file&rsquo;s SHA256
+        against the published checksum.
       </p>
     </>
   );

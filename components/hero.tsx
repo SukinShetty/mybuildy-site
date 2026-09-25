@@ -44,7 +44,7 @@ export function Hero({ downloads }: { downloads: Downloads }) {
             MyBuildy sits beside your AI coding agent’s window, watches what it just did, and tells you in plain
             English what happened and what to type next.
           </p>
-          <p className="mt-3 max-w-[34rem] text-body text-text">Free, open source, and it runs on your own computer.</p>
+          <p className="mt-3 max-w-[34rem] text-body text-text">Free, source-available, and it runs on your own computer.</p>
 
           <DownloadButtons
             downloads={downloads}
