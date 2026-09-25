@@ -17,9 +17,9 @@ type Attention = React.HTMLAttributes<HTMLElement>;
 
 /** Same look as the Mac menu's trigger, shown for the moment before the menu's code has loaded.
  *  A click on it is remembered (app/layout.tsx) and opens the menu once it has loaded. */
-function MacPlaceholder({ className, owner }: { className: string; owner?: string }) {
+function MacPlaceholder({ className, owner, onClick }: { className: string; owner?: string; onClick?: () => void }) {
   return (
-    <button type="button" className={className} data-download="mac" data-download-owner={owner}>
+    <button type="button" className={className} data-download="mac" data-download-owner={owner} onClick={onClick}>
       <Download className="size-5" aria-hidden="true" />
       Download for Mac
       <ChevronDown className="size-4 opacity-70" aria-hidden="true" />
@@ -34,10 +34,16 @@ const MacDownloadMenuLazy = dynamic(() => import("@/components/mac-download-menu
 type MacMenuProps = React.ComponentProps<typeof MacDownloadMenuLazy>;
 function MacDownloadMenu(props: MacMenuProps) {
   const [loaded, setLoaded] = useState(false);
+  // Clicked while the menu was still loading: open it as soon as it arrives.
+  const [clickedWhileLoading, setClickedWhileLoading] = useState(false);
   useEffect(() => {
     void import("@/components/mac-download-menu").then(() => setLoaded(true));
   }, []);
-  return loaded ? <MacDownloadMenuLazy {...props} /> : <MacPlaceholder className={props.className} owner={props.owner} />;
+  return loaded ? (
+    <MacDownloadMenuLazy {...props} initialOpen={props.initialOpen || clickedWhileLoading} />
+  ) : (
+    <MacPlaceholder className={props.className} owner={props.owner} onClick={() => setClickedWhileLoading(true)} />
+  );
 }
 
 // Lazy: the download modal is only fetched once someone points at, focuses or clicks a button.
