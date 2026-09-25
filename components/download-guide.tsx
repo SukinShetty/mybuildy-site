@@ -193,11 +193,18 @@ function MacSteps() {
 
   return (
     <>
+      {/* Since macOS 15 Sequoia, right-click → Open no longer bypasses Gatekeeper for apps that
+          aren't notarized; Open Anyway in Privacy & Security is the way through. */}
       <Dialog.Description className="mt-3 text-body text-text">
-        Open the DMG and drag MyBuildy to Applications. The first time you open it, <strong>right-click</strong> the
-        app and choose <strong>Open</strong>, then <strong>Open</strong> again. Opening it by double-click will be
-        blocked.
+        Open the DMG and drag MyBuildy to Applications. The first time you open MyBuildy, macOS blocks it —
+        that&rsquo;s expected. Click <strong>Done</strong> (not Move to Trash). Then open{" "}
+        <strong>System Settings → Privacy &amp; Security</strong>, scroll to the bottom, and next to &ldquo;MyBuildy
+        was blocked to protect your Mac&rdquo; click <strong>Open Anyway</strong>. Enter your password, then{" "}
+        <strong>Open Anyway</strong> again. Do it soon: the button disappears after about an hour.
       </Dialog.Description>
+      <p className="mt-3 text-small text-muted">
+        On macOS 14 Sonoma, right-click the app and choose Open instead.
+      </p>
       <p className="mt-3 text-small text-muted">If macOS says the app is damaged, run this in Terminal once:</p>
       <div className="mt-2 flex items-stretch gap-2">
         <code className="min-w-0 flex-1 break-all rounded-xl border border-line bg-ink px-3 py-2.5 font-mono text-[0.8rem] leading-6 text-text">
@@ -214,7 +221,8 @@ function MacSteps() {
         </button>
       </div>
       <p className="mt-3 text-small text-muted">
-        macOS will also ask for Screen Recording and Accessibility permission. MyBuildy explains each one when it
+        macOS will also ask for Screen Recording (called Screen &amp; System Audio Recording on newer macOS) and
+        Accessibility permission. MyBuildy explains each one when it
         needs it, and cannot watch your screen or type for you without them.
       </p>
     </>

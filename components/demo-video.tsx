@@ -23,7 +23,7 @@ export function DemoVideo() {
           <iframe
             className="absolute inset-0 size-full"
             src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(VIDEO_ID)}?rel=0&modestbranding=1`}
-            title="My Buildy demo video"
+            title="MyBuildy demo video"
             allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen
@@ -32,7 +32,7 @@ export function DemoVideo() {
           <>
             <Image
               src="/images/demo-poster.jpg"
-              alt="My Buildy beside its guidance panel, which explains the last step and suggests the next prompt"
+              alt="MyBuildy beside its guidance panel, which explains the last step and suggests the next prompt"
               fill
               sizes="(max-width: 1024px) 100vw, 1024px"
               className="object-cover"

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Fragment } from "react";
 import { BuildyStates } from "@/components/buildy-states";
 import { DemoVideo } from "@/components/demo-video";
 import { DownloadButtons } from "@/components/download-buttons";
@@ -41,8 +42,18 @@ function Section({
 
 const promises = ["Open source, MIT", "Your key, your model", "Memory stays on your machine", "No account, no subscription"];
 
+// Outside accounts of the same problem, linked under "Why I built this".
+const evidence = [
+  { label: "A CEO’s guide to Claude Code for non-technical people", href: "https://michaelcrist.substack.com/p/claude-code" },
+  {
+    label: "Why permission prompts don’t protect people who can’t read code",
+    href: "https://dev.to/minatoplanb/-dangerously-skip-permissions-the-claude-code-flag-every-vibe-coder-needs-4382",
+  },
+  { label: "Claude Code isn’t just for developers", href: "https://cashandcache.substack.com/p/claude-code-isnt-just-for-developers" },
+];
+
 const notYet = [
-  "My Buildy runs the loop. You approve each step; he never sends anything on his own.",
+  "MyBuildy runs the loop. You approve each step; he never sends anything on his own.",
   "Four of the six loop-engineering blocks are built. Scheduled runs and tool connectors are on the roadmap.",
   "Windows is tested most. macOS support is brand new — tell me what breaks.",
   "The installers are not code-signed yet, so Windows and macOS will both warn you the first time. Instructions are in the README.",
@@ -52,7 +63,7 @@ const install = [
   "Download the installer for your computer.",
   "Open it. The first launch shows a warning because it is not code-signed yet; the README says what to click.",
   "Paste an API key from your AI provider into Settings.",
-  "Tell Buildy what you are building, then point him at your terminal.",
+  "Tell Buildy what you are building, then point him at your AI coding agent’s window.",
 ];
 
 export default async function Home() {
@@ -99,8 +110,8 @@ export default async function Home() {
               </Reveal>
               <Reveal className="mt-8 max-w-[38rem] space-y-5 text-body text-text/85">
                 <p>
-                  Buildy is a small orange robot who sits on top of your screen and watches one window: the terminal
-                  where your AI coding agent is working.
+                  Buildy is a small orange robot who sits on top of your screen and watches one window: the one where
+                  your AI coding agent is working.
                 </p>
                 <p>
                   He reads what just happened and says it back to you in plain English. He tells you whether you are
@@ -119,26 +130,53 @@ export default async function Home() {
 
         {/* 5. Why I built this */}
         <Section id="why" title="Why I built this" className="bg-surface/60">
-          <Reveal className="mt-10 max-w-[44rem] space-y-6 text-note text-text/90">
-            <p className="text-text">I teach AI to people who don&rsquo;t code.</p>
+          <Reveal className="mt-10 max-w-[44rem] space-y-6 text-note text-text">
+            <p>I meet a lot of non-technical people who are already using Claude Code.</p>
             <p>
-              In workshop after workshop I watched the same moment happen. They would build something real in an app
-              and feel unstoppable. Then I would show them a coding agent in a terminal, because that is where the
-              actual power is — your own files, your own project, your own machine. And they would stop.
+              They didn&rsquo;t start there. They started in Lovable or Replit or Bolt, building in a browser and
+              watching a preview update as they typed. It worked — until they needed something that lived outside
+              that box: their own files, their own project, a real git history, their own machine, their own keys.
+              That&rsquo;s when they install a coding agent. They&rsquo;re right to. That&rsquo;s where the control
+              is.
+            </p>
+            <p>And that&rsquo;s where the feedback disappears.</p>
+            <p>
+              In the browser builder, something appears on screen and you know it worked. A coding agent tells you
+              what it did in diffs, file paths and command output. Forty lines scroll past and you cannot tell whether
+              it just shipped a feature or broke the project. So when it asks &ldquo;Allow?&rdquo;, you press Yes —
+              not because you judged it safe, but because you have no way to judge at all. One CEO building
+              dashboards with Claude Code admitted to googling every single command for his first week, just to be
+              sure nothing would break. A developer writing about the same problem called it a design mismatch:
+              asking non-programmers to answer programmer-level safety questions.
             </p>
             <p>
-              Not because it was too hard. Because the terminal tells you what happened in a language they cannot
-              read. In an app, something appears and you know it worked. In a terminal, forty lines scroll past and
-              you have no idea whether you just shipped a feature or broke everything. The cursor blinks. Nobody
-              types anything.
+              It isn&rsquo;t that coding agents are too hard. It&rsquo;s that they never tell you, in words you
+              understand, what they just did.
             </p>
-            <p className="text-text">
+            <p>
               Every tool built for that moment assumes you can read code. So I built the one that doesn&rsquo;t.
             </p>
             <p className="border-l-2 border-orange pl-5 text-body text-muted">
               <span className="font-bold text-text">Sukin Shetty</span>
               <br />
               Solution Forge Labs, Bengaluru
+            </p>
+            <p className="text-small text-muted">
+              Not just my experience:{" "}
+              {evidence.map((e, i) => (
+                <Fragment key={e.href}>
+                  {i > 0 && " · "}
+                  <a
+                    href={e.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline decoration-muted/50 underline-offset-4 transition-colors hover:text-text hover:decoration-orange"
+                  >
+                    {e.label}
+                    <span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                </Fragment>
+              ))}
             </p>
           </Reveal>
         </Section>

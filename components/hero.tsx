@@ -41,7 +41,7 @@ export function Hero({ downloads }: { downloads: Downloads }) {
             Your AI coding agent, finally explained.
           </h1>
           <p className="mt-7 max-w-[34rem] text-body text-text/85">
-            My Buildy sits beside your terminal, watches what your AI coding agent just did, and tells you in plain
+            MyBuildy sits beside your AI coding agent’s window, watches what it just did, and tells you in plain
             English what happened and what to type next.
           </p>
           <p className="mt-3 max-w-[34rem] text-body text-text">Free, open source, and it runs on your own computer.</p>

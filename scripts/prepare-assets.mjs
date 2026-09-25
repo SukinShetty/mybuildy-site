@@ -37,9 +37,24 @@ for (const name of ["guidance-panel", "mascot", "memory", "set-goal", "settings"
   }
   const keyed = await sharp(out, { raw: { width: info.width, height: info.height, channels: 4 } })
     .png().toBuffer();
+  // The source art reads "My Buildy"; the name is one word. Close the word gap (source columns
+  // 838–889 are empty; inside the words letter gaps are 5–11px) by removing GAP_CUT columns from
+  // its middle, leaving a normal letter gap: "MyBuildy" in the original lettering.
+  const GAP_FROM = 842, GAP_CUT = 44;
+  const closed = await sharp({ create: { width: info.width - GAP_CUT, height: info.height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+    .composite([
+      { input: await sharp(keyed).extract({ left: 0, top: 0, width: GAP_FROM, height: info.height }).toBuffer(), left: 0, top: 0 },
+      {
+        input: await sharp(keyed).extract({ left: GAP_FROM + GAP_CUT, top: 0, width: info.width - GAP_FROM - GAP_CUT, height: info.height }).toBuffer(),
+        left: GAP_FROM,
+        top: 0,
+      },
+    ])
+    .png()
+    .toBuffer();
   // Full lockup (mark + wordmark) for the top bar.
-  const lockup = `${IMG}/buildy-logo.png`;
-  await sharp(keyed).extract({ left: 95, top: 330, width: 1370, height: 360 }).resize({ height: 96 })
+  const lockup = `${IMG}/mybuildy-logo.png`;
+  await sharp(closed).extract({ left: 95, top: 330, width: 1370 - GAP_CUT, height: 360 }).resize({ height: 96 })
     .png({ compressionLevel: 9 }).toFile(lockup);
   log(lockup);
   // Square mark (opaque, as designed) for favicon and apple-touch-icon.

@@ -1,6 +1,6 @@
 # mybuildy.com
 
-Marketing site for [My Buildy](https://github.com/SukinShetty/mybuildy): a small orange robot that watches your terminal and tells you in plain English what your AI coding agent just did.
+Marketing site for [MyBuildy](https://github.com/SukinShetty/mybuildy): a small orange robot that watches your AI coding agent’s window and tells you in plain English what your AI coding agent just did.
 
 Next.js 15 (App Router), TypeScript, Tailwind v4, shadcn/ui, framer-motion, lucide-react.
 

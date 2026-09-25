@@ -31,8 +31,8 @@ export function TopBar({ stars }: { stars: number | null }) {
       )}
     >
       <nav aria-label="Main" className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
-        <a href="#top" className="shrink-0" aria-label="My Buildy, back to top">
-          <Image src="/images/buildy-logo.png" alt="My Buildy" width={122} height={32} loading="eager" className="h-8 w-auto" />
+        <a href="#top" className="shrink-0" aria-label="MyBuildy, back to top">
+          <Image src="/images/mybuildy-logo.png" alt="MyBuildy" width={118} height={32} loading="eager" className="h-8 w-auto" />
         </a>
         <div className="flex items-center gap-1 sm:gap-2">
           <ul className="hidden items-center md:flex">

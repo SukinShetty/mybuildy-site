@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
-export const alt = "My Buildy: your AI coding agent, finally explained";
+export const alt = "MyBuildy: your AI coding agent, finally explained";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -23,7 +23,7 @@ export default async function OpengraphImage() {
           }}
         />
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 0 0 80px", width: 700 }}>
-          <div style={{ fontSize: 28, color: "#FC8400", letterSpacing: "0.02em" }}>My Buildy</div>
+          <div style={{ fontSize: 28, color: "#FC8400", letterSpacing: "0.02em" }}>MyBuildy</div>
           <div style={{ fontSize: 76, lineHeight: 1.04, color: "#F4F2EF", marginTop: 20, letterSpacing: "-0.03em" }}>
             Your AI coding agent, finally explained.
           </div>

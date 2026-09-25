@@ -11,7 +11,7 @@ import { PlayWhenVisible } from "@/components/play-when-visible";
  */
 const STATES = [
   { key: "idle", src: "/images/buildy-idle.png", caption: "Waiting" },
-  { key: "watching", src: "/images/buildy-watching.png", caption: "Watching your terminal" },
+  { key: "watching", src: "/images/buildy-watching.png", caption: "Watching your agent’s window" },
   { key: "thinking", src: "/images/buildy-thinking.png", caption: "Working out what happened" },
   { key: "speaking", src: "/images/buildy-speaking.png", caption: "Telling you what to do next" },
 ] as const;
@@ -20,7 +20,7 @@ export function BuildyStates({ className }: { className?: string }) {
   return (
     <PlayWhenVisible
       className={`bs ${className ?? ""}`}
-      label="Buildy, a small orange robot, cycling through what he does: waiting, watching your terminal, working out what happened, and telling you what to do next"
+      label="Buildy, a small orange robot, cycling through what he does: waiting, watching your coding agent’s window, working out what happened, and telling you what to do next"
     >
       <div aria-hidden="true" className="relative aspect-[512/768] w-full">
         {/* Glow per state, behind him */}

@@ -18,7 +18,7 @@ export const FEATURES: Feature[] = [
   },
   {
     title: "The next prompt, ready to send",
-    line: "He writes it, you read it, one click sends it to the terminal.",
+    line: "He writes it, you read it, one click sends it to your coding agent’s window.",
     image: { src: "/images/screens/guidance-panel.png", alt: "Guidance panel showing a plain-English summary, an on-track status, and the next prompt with a Send button", kind: "screen", width: 525, height: 593 },
   },
   {
@@ -34,7 +34,7 @@ export const FEATURES: Feature[] = [
   {
     title: "Remembers your project",
     line: "Tomorrow he knows what you built today. Stored only on your computer.",
-    image: { src: "/images/screens/memory.png", alt: "Project memory screen with the goal and what My Buildy has learned", kind: "screen", width: 683, height: 854 },
+    image: { src: "/images/screens/memory.png", alt: "Project memory screen with the goal and what MyBuildy has learned", kind: "screen", width: 683, height: 854 },
   },
   {
     title: "Your key, your model",
@@ -43,7 +43,7 @@ export const FEATURES: Feature[] = [
   },
   {
     title: "Speaks, so you can keep reading",
-    line: "He can read his explanation aloud while your eyes stay on the terminal.",
+    line: "He can read his explanation aloud while your eyes stay on your coding agent.",
     image: { src: "/images/buildy-speaking.png", alt: "Buildy talking with one hand raised", kind: "pose", width: 512, height: 768 },
   },
 ];

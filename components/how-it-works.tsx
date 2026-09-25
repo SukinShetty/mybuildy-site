@@ -5,12 +5,12 @@ import { Reveal } from "@/components/reveal";
 
 const steps = [
   { title: "Tell Buildy what you are building", body: "One sentence: what you want, and what “done” looks like." },
-  { title: "Point him at your terminal", body: "Click the robot, pick the window your coding agent is running in." },
+  { title: "Point him at your coding agent", body: "Click the robot, pick the window your coding agent is running in." },
   {
     title: "Read what just happened",
     body: "Plain English every time the agent finishes a step, plus whether you are still on track.",
   },
-  { title: "Send the next prompt", body: "He writes it, you read it, one click sends it into the terminal." },
+  { title: "Send the next prompt", body: "He writes it, you read it, one click sends it into your coding agent’s window." },
 ];
 
 export function HowItWorks() {
