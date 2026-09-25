@@ -66,6 +66,10 @@ export default function PrivacyPage() {
               The site is hosted on Vercel, which, like every web host, keeps short-lived technical request logs to
               run and protect the service. They are not used to track you.
             </li>
+            <li>
+              If you answer the optional questions, your answers are stored in a private Supabase database that only
+              this site&rsquo;s server can read.
+            </li>
             <li>The installers download from GitHub, where the source code and releases live.</li>
             <li>
               If a demo video is shown, it comes from YouTube&rsquo;s privacy-enhanced mode and only loads when you

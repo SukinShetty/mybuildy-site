@@ -19,6 +19,14 @@ Optional: set `NEXT_PUBLIC_DEMO_VIDEO_ID` (see `.env.example`) to a YouTube id t
 - Download buttons read `releases/latest` from the GitHub API at build time (revalidated hourly) and match assets by suffix: `.exe`, `-arm64.dmg`, `-x64.dmg`. If there is no release they link to the releases page. No version number is hardcoded.
 - The GitHub star count is fetched the same way and hidden if the request fails.
 
+## Signups and /admin
+
+The optional post-download answers are stored by `POST /api/signup` in a Supabase table. Create it once by running [`supabase/signups.sql`](supabase/signups.sql) in the Supabase SQL editor. The form sends `build`, `agents`, `self`; the route maps them to the columns `building`, `agents`, `skill_level`.
+
+`/admin` (password: `ADMIN_PASSWORD`) shows download counts per release from the GitHub API, signup totals, answer counts, every signup, and a CSV export at `/admin/signups.csv`.
+
+Server-only environment variables (see `.env.example`): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_PASSWORD`. Without the Supabase pair the form still thanks people but nothing is stored.
+
 ## Assets
 
 Source art lives in `assets-src/` (copied from the app repo). Regenerate the web assets with:

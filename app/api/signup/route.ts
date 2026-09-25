@@ -1,23 +1,26 @@
-// POST /api/signup — stores one optional post-download answer set in Vercel KV (Upstash Redis).
+// POST /api/signup — stores one optional post-download answer set in Supabase (table public.signups).
 //
 // Privacy rules enforced here:
-//   - Stores ONLY the validated answers, the platform chosen and a timestamp. No IP address, no
-//     user agent, no headers.
+//   - Stores ONLY the validated answers and the platform chosen; the database adds the timestamp.
+//     No IP address, no user agent, no headers.
 //   - Rate limit: at most RATE_LIMIT submissions per visitor per hour. The visitor key is a
 //     salted SHA-256 of the IP kept in this instance's memory for the window only — never
 //     stored, never logged. (Serverless instances don't share memory, so the limit is per
 //     instance: a speed bump against floods, not a hard quota.)
 //   - There is no GET or any other read endpoint: only POST is exported.
-//   - If KV isn't configured or is unreachable, the request still "succeeds" (204). The form
+//   - If Supabase isn't configured or is unreachable, the request still "succeeds" (204). The form
 //     must never look broken to someone who just downloaded the app.
+//
+// The payload keeps the form's field names (build, self); they map to the columns building and
+// skill_level here, at the storage boundary.
 
 import { createHash, randomBytes } from "node:crypto";
 import { parseSignup } from "@/lib/signup";
+import { getSupabase, SIGNUPS_TABLE } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const LIST_KEY = "mybuildy:signups";
 const MAX_BODY_BYTES = 4096;
 const RATE_LIMIT = 5;
 const WINDOW_MS = 60 * 60 * 1000;
@@ -43,12 +46,6 @@ function overLimit(key: string, now: number): boolean {
   return entry.count > RATE_LIMIT;
 }
 
-function kvConfig(): { url: string; token: string } | null {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-  return url && token ? { url: url.replace(/\/$/, ""), token } : null;
-}
-
 const noContent = () => new Response(null, { status: 204 });
 
 export async function POST(req: Request): Promise<Response> {
@@ -68,24 +65,24 @@ export async function POST(req: Request): Promise<Response> {
   const answers = parseSignup(body);
   if (!answers) return new Response(null, { status: 400 });
 
-  const kv = kvConfig();
-  if (!kv) {
-    console.warn("[signup] KV is not configured; answer not stored");
+  const db = getSupabase();
+  if (!db) {
+    console.warn("[signup] Supabase is not configured; answer not stored");
     return noContent();
   }
 
-  const record = JSON.stringify({ ...answers, at: new Date().toISOString() });
   try {
-    const res = await fetch(kv.url, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${kv.token}`, "Content-Type": "application/json" },
-      body: JSON.stringify(["LPUSH", LIST_KEY, record]),
-      signal: AbortSignal.timeout(4000),
-      cache: "no-store",
+    const { error } = await db.from(SIGNUPS_TABLE).insert({
+      name: answers.name || null,
+      email: answers.email || null,
+      platform: answers.platform,
+      building: answers.build,
+      agents: answers.agents,
+      skill_level: answers.self,
     });
-    if (!res.ok) console.warn(`[signup] KV write failed with HTTP ${res.status}`);
+    if (error) console.warn(`[signup] Supabase insert failed: ${error.code || "unknown code"}`);
   } catch (error) {
-    console.warn("[signup] KV write failed:", error instanceof Error ? error.name : "unknown error");
+    console.warn("[signup] Supabase insert failed:", error instanceof Error ? error.name : "unknown error");
   }
   return noContent();
 }
