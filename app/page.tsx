@@ -100,7 +100,7 @@ export default async function Home() {
         {/* 4. Who is Buildy */}
         <section id="who" aria-labelledby="who-title" className="py-24 sm:py-32">
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20 lg:px-8">
-            <Reveal className="relative isolate mx-auto w-[min(76vw,380px)] lg:w-full lg:max-w-[440px]">
+            <Reveal className="relative isolate mx-auto w-[min(72vw,320px)] lg:w-full lg:max-w-[360px]">
               <BuildyStates />
             </Reveal>
             <div>
@@ -129,58 +129,77 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* 5. Why I built this */}
-        <Section id="why" title="Why I built this" className="bg-surface/60">
-          <Reveal className="mt-10 max-w-[44rem] space-y-6 text-note text-text">
-            <p>I meet a lot of non-technical people who are already using Claude Code.</p>
-            <p>
-              They didn&rsquo;t start there. They started in Lovable or Replit or Bolt, building in a browser and
-              watching a preview update as they typed. It worked — until they needed something that lived outside
-              that box: their own files, their own project, a real git history, their own machine, their own keys.
-              That&rsquo;s when they install a coding agent. They&rsquo;re right to. That&rsquo;s where the control
-              is.
-            </p>
-            <p>And that&rsquo;s where the feedback disappears.</p>
-            <p>
-              In the browser builder, something appears on screen and you know it worked. A coding agent tells you
-              what it did in diffs, file paths and command output. Forty lines scroll past and you cannot tell whether
-              it just shipped a feature or broke the project. So when it asks &ldquo;Allow?&rdquo;, you press Yes —
-              not because you judged it safe, but because you have no way to judge at all. One CEO building
-              dashboards with Claude Code admitted to googling every single command for his first week, just to be
-              sure nothing would break. A developer writing about the same problem called it a design mismatch:
-              asking non-programmers to answer programmer-level safety questions.
-            </p>
-            <p>
-              It isn&rsquo;t that coding agents are too hard. It&rsquo;s that they never tell you, in words you
-              understand, what they just did.
-            </p>
-            <p>
-              Every tool built for that moment assumes you can read code. So I built the one that doesn&rsquo;t.
-            </p>
-            <p className="border-l-2 border-orange pl-5 text-body text-muted">
-              <span className="font-bold text-text">Sukin Shetty</span>
-              <br />
-              Solution Forge Labs, Bengaluru
-            </p>
-            <p className="text-small text-muted">
-              Not just my experience:{" "}
-              {evidence.map((e, i) => (
-                <Fragment key={e.href}>
-                  {i > 0 && " · "}
-                  <a
-                    href={e.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline decoration-muted/50 underline-offset-4 transition-colors hover:text-text hover:decoration-orange"
-                  >
-                    {e.label}
-                    <span className="sr-only"> (opens in a new tab)</span>
-                  </a>
-                </Fragment>
-              ))}
-            </p>
-          </Reveal>
-        </Section>
+        {/* 5. Why I built this — the photo sits in the right-hand column on desktop, between the title
+            and the text on small screens. */}
+        <section id="why" aria-labelledby="why-title" className="bg-surface/60 py-24 sm:py-32">
+          <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,44rem)_minmax(0,1fr)] lg:gap-x-16 lg:px-8">
+            <Reveal>
+              <h2 id="why-title" className="text-section font-bold tracking-[-0.02em] text-balance">
+                Why I built this
+              </h2>
+            </Reveal>
+            <Reveal className="w-full max-w-[32rem] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:max-w-[440px] lg:self-start lg:justify-self-end">
+              <Image
+                src="/images/sukin-with-buildy.webp"
+                alt="Sukin Shetty with Buildy, the MyBuildy robot"
+                width={1122}
+                height={1402}
+                sizes="(min-width: 1024px) 440px, min(calc(100vw - 2rem), 32rem)"
+                loading="lazy"
+                className="h-auto w-full rounded-3xl border border-line shadow-[0_24px_60px_-20px_rgb(0_0_0/0.7)]"
+              />
+            </Reveal>
+            <Reveal className="max-w-[44rem] space-y-6 text-note text-text lg:row-start-2">
+              <p>I meet a lot of non-technical people who are already using Claude Code.</p>
+              <p>
+                They didn&rsquo;t start there. They started in Lovable or Replit or Bolt, building in a browser and
+                watching a preview update as they typed. It worked — until they needed something that lived outside
+                that box: their own files, their own project, a real git history, their own machine, their own keys.
+                That&rsquo;s when they install a coding agent. They&rsquo;re right to. That&rsquo;s where the control
+                is.
+              </p>
+              <p>And that&rsquo;s where the feedback disappears.</p>
+              <p>
+                In the browser builder, something appears on screen and you know it worked. A coding agent tells you
+                what it did in diffs, file paths and command output. Forty lines scroll past and you cannot tell whether
+                it just shipped a feature or broke the project. So when it asks &ldquo;Allow?&rdquo;, you press Yes —
+                not because you judged it safe, but because you have no way to judge at all. One CEO building
+                dashboards with Claude Code admitted to googling every single command for his first week, just to be
+                sure nothing would break. A developer writing about the same problem called it a design mismatch:
+                asking non-programmers to answer programmer-level safety questions.
+              </p>
+              <p>
+                It isn&rsquo;t that coding agents are too hard. It&rsquo;s that they never tell you, in words you
+                understand, what they just did.
+              </p>
+              <p>
+                Every tool built for that moment assumes you can read code. So I built the one that doesn&rsquo;t.
+              </p>
+              <p className="border-l-2 border-orange pl-5 text-body text-muted">
+                <span className="font-bold text-text">Sukin Shetty</span>
+                <br />
+                Solution Forge Labs, Bengaluru
+              </p>
+              <p className="text-small text-muted">
+                Not just my experience:{" "}
+                {evidence.map((e, i) => (
+                  <Fragment key={e.href}>
+                    {i > 0 && " · "}
+                    <a
+                      href={e.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline decoration-muted/50 underline-offset-4 transition-colors hover:text-text hover:decoration-orange"
+                    >
+                      {e.label}
+                      <span className="sr-only"> (opens in a new tab)</span>
+                    </a>
+                  </Fragment>
+                ))}
+              </p>
+            </Reveal>
+          </div>
+        </section>
 
         {/* 6. Watch it work */}
         <Section id="demo" title="Watch it work">

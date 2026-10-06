@@ -85,3 +85,10 @@ for (const name of ["guidance-panel", "mascot", "memory", "set-goal", "settings"
     .toFile(out);
   log(out);
 }
+
+// Founder photo for "Why I built this": opaque, so lossy WebP; next/image serves smaller sizes from it.
+{
+  const out = `${IMG}/sukin-with-buildy.webp`;
+  await sharp(`${SRC}/sukin-with-buildy.png`).webp({ quality: 82, effort: 6 }).toFile(out);
+  log(out);
+}
