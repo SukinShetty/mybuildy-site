@@ -181,18 +181,9 @@ function WindowsSteps() {
 function MacSteps() {
   return (
     <>
-      {/* Since macOS 15 Sequoia, right-click → Open no longer bypasses Gatekeeper for apps that
-          aren't notarized; Open Anyway in Privacy & Security is the way through. */}
       <Dialog.Description className="mt-3 text-body text-text">
-        Open the DMG and drag MyBuildy to Applications. The first time you open MyBuildy, macOS blocks it —
-        that&rsquo;s expected. Click <strong>Done</strong> (not Move to Trash). Then open{" "}
-        <strong>System Settings → Privacy &amp; Security</strong>, scroll to the bottom, and next to &ldquo;MyBuildy
-        was blocked to protect your Mac&rdquo; click <strong>Open Anyway</strong>. Enter your password, then{" "}
-        <strong>Open Anyway</strong> again. Do it soon: the button disappears after about an hour.
+        Open the downloaded file and drag MyBuildy into Applications. Then open it from Applications.
       </Dialog.Description>
-      <p className="mt-3 text-small text-muted">
-        On macOS 14 Sonoma, right-click the app and choose Open instead.
-      </p>
       <p className="mt-3 text-small text-muted">
         Stuck?{" "}
         <a href={ISSUES_URL} target="_blank" rel="noopener noreferrer" className={`${linkClass} ${focusRing}`}>
