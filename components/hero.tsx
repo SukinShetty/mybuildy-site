@@ -49,7 +49,7 @@ export function Hero({ downloads }: { downloads: Downloads }) {
           <DownloadButtons
             downloads={downloads}
             onAttention={setAttention}
-            note="Windows and macOS will warn you on first run — the installers aren't signed yet. We'll show you what to click."
+            note="The Mac app is signed and notarized by Apple. Windows will warn you on first run because the installer isn't signed yet. We'll show you what to click."
             className="mt-9"
           />
 
