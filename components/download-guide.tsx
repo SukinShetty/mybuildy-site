@@ -3,8 +3,8 @@
 /**
  * The download modal. The first time a browser downloads, it opens BEFORE anything downloads,
  * with a few questions; "Submit and download" saves the answers, starts the file and swaps the
- * form for the install warning. After that (remembered in localStorage by DownloadButtons) it
- * opens straight on the install warning while the download runs. Closing the form starts nothing.
+ * form for the install steps. After that (remembered in localStorage by DownloadButtons) it
+ * opens straight on the install steps while the download runs. Closing the form starts nothing.
  *
  * Loaded lazily by DownloadButtons. base-ui's Dialog provides the modal behaviour: focus trap,
  * Escape and outside-click to dismiss, focus returned to the download button on close.
@@ -91,7 +91,8 @@ export default function DownloadGuide({ open, onOpenChange, platform, downloadUr
             />
           ) : (
             <>
-              {/* The install warning: first, prominent, always shown once the file is on its way. */}
+              {/* The install steps: first, prominent, always shown once the file is on its way. Only Windows
+                  warns (unsigned installer); the Mac app is signed and notarized. */}
               <section className="mr-10 rounded-2xl border-2 border-orange bg-orange/10 p-4 sm:mr-8 sm:p-5">
                 <p role="status" className="text-small text-muted">
                   Your download of MyBuildy {version ? `${version} ` : ""}for {PLATFORM_LABEL[platform]} has started.
@@ -106,7 +107,7 @@ export default function DownloadGuide({ open, onOpenChange, platform, downloadUr
                   tabIndex={-1}
                   className="mt-2 text-[1.35rem] font-bold leading-tight tracking-[-0.01em] outline-none sm:text-note"
                 >
-                  {platform === "windows" ? "One more step: Windows will warn you" : "One more step: macOS will warn you"}
+                  {platform === "windows" ? "One more step: Windows will warn you" : "One more step: move it to Applications"}
                 </Dialog.Title>
                 {platform === "windows" ? <WindowsSteps /> : <MacSteps />}
                 <p className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-small text-muted">

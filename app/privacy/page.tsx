@@ -50,10 +50,9 @@ export default function PrivacyPage() {
           <h2 className="text-note font-bold text-text">Your email</h2>
           <p className="mt-3">
             Your name and email are used only for MyBuildy release announcements. No newsletter, never shared or
-            sold, and you can unsubscribe any time. To have your answers deleted, reply to any update email
-            or{" "}
-            <a href={`${REPO_URL}/issues`} className={link}>
-              open an issue on GitHub
+            sold, and you can unsubscribe any time. To have your answers deleted, write to{" "}
+            <a href={`mailto:${CONTACT_EMAIL}`} className={link}>
+              {CONTACT_EMAIL}
             </a>
             .
           </p>

@@ -57,12 +57,12 @@ const notYet = [
   "MyBuildy runs the loop. You approve each step; he never sends anything on his own.",
   "Four of the six loop-engineering blocks are built. Scheduled runs and tool connectors are on the roadmap.",
   "Windows is tested most. macOS support is brand new — tell me what breaks.",
-  "The installers are not code-signed yet, so Windows and macOS will both warn you the first time. Instructions are in the README.",
+  "The Windows installer is not code-signed yet, so Windows SmartScreen warns you the first time: click More info, then Run anyway. The Mac app is signed and notarized by Apple.",
 ];
 
 const install = [
   "Download the installer for your computer.",
-  "Open it. The first launch shows a warning because it is not code-signed yet; the README says what to click.",
+  "Open it. On Windows, SmartScreen warns you because the installer is not code-signed yet: click More info, then Run anyway. On a Mac, drag MyBuildy into Applications and open it from there.",
   "Paste an API key from your AI provider into Settings.",
   "Tell Buildy what you are building, then point him at your AI coding agent’s window.",
 ];
