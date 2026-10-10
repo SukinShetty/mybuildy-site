@@ -64,7 +64,7 @@ const notYet = [
 const install = [
   "Download the installer for your computer.",
   "Open it. On Windows, SmartScreen warns you because the installer is not code-signed yet: click More info, then Run anyway. On a Mac, drag MyBuildy into Applications and open it from there.",
-  "Follow the short setup: paste an API key from your AI provider and pick a model.",
+  "Follow the short setup: paste an API key from your AI provider, or choose a local model, and pick a model.",
   "Tell Buildy what you are building, then point him at your AI coding agent’s window.",
 ];
 
@@ -274,9 +274,7 @@ export default async function Home() {
               <p className="mt-4 max-w-[34rem] text-body text-text/85">
                 Prefer a local model? Install Ollama or LM Studio and download a model that can read images. No key
                 needed: in the first-run setup, choose Use a local model instead, and MyBuildy finds the app on your
-                computer and lists your models. This option comes with the next download. The current 0.1.0
-                installer&rsquo;s setup still asks for a cloud API key; after it, open Settings, choose Ollama or LM
-                Studio under Advanced, and pick your model.
+                computer and lists your models.
               </p>
               <p className="mt-4 max-w-[34rem] text-body text-text/85">
                 Free for anyone to use, including for work. You just can&rsquo;t resell it.
