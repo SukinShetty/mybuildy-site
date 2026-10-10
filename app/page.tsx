@@ -269,12 +269,14 @@ export default async function Home() {
             <Reveal>
               <p className="max-w-[34rem] text-body text-text/85">
                 Before you start, you need two things: a coding agent such as Claude Code already installed, and an
-                API key from one AI provider.
+                API key from one AI provider, or a local model (see below).
               </p>
               <p className="mt-4 max-w-[34rem] text-body text-text/85">
-                Prefer a local model? Install Ollama or LM Studio and download a model that can read images. After
-                the short setup, open Settings, choose Ollama or LM Studio under Advanced, and pick your model. No
-                key needed. (For now, the first-run setup itself asks for a cloud API key.)
+                Prefer a local model? Install Ollama or LM Studio and download a model that can read images. No key
+                needed: in the first-run setup, choose Use a local model instead, and MyBuildy finds the app on your
+                computer and lists your models. This option comes with the next download. The current 0.1.0
+                installer&rsquo;s setup still asks for a cloud API key; after it, open Settings, choose Ollama or LM
+                Studio under Advanced, and pick your model.
               </p>
               <p className="mt-4 max-w-[34rem] text-body text-text/85">
                 Free for anyone to use, including for work. You just can&rsquo;t resell it.
