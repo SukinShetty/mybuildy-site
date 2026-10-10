@@ -65,6 +65,12 @@ export async function POST(req: Request): Promise<Response> {
   } catch {
     return new Response(null, { status: 400 });
   }
+  // UUID is generated once per form attempt and reused if the response is lost.
+  // The existing primary key makes retries atomic across server instances.
+  const requestId = req.headers.get("idempotency-key");
+  if (requestId && !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId)) {
+    return new Response(null, { status: 400 });
+  }
   const answers = parseSignup(body);
   if (!answers) return new Response(null, { status: 400 });
 
@@ -75,14 +81,19 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   try {
-    const { error } = await db.from(SIGNUPS_TABLE).insert({
+    const row = {
+      ...(requestId ? { id: requestId } : {}),
       name: answers.name || null,
       email: answers.email || null,
       platform: answers.platform,
       building: answers.build,
       agents: answers.agents,
       skill_level: answers.self,
-    });
+    };
+    const table = db.from(SIGNUPS_TABLE);
+    const { error } = requestId
+      ? await table.upsert(row, { onConflict: "id", ignoreDuplicates: true })
+      : await table.insert(row);
     if (error) {
       console.error(`[signup] Supabase insert failed: ${error.code || "unknown code"}`);
       return notStored();
