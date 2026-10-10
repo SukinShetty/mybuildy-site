@@ -33,7 +33,7 @@ export const FEATURES: Feature[] = [
   },
   {
     title: "Remembers your project",
-    line: "Tomorrow he knows what you built today. Stored only on your computer.",
+    line: "Tomorrow he knows what you built today. Saved on your computer; the relevant parts go to your AI provider with each check.",
     image: { src: "/images/screens/memory.png", alt: "Project memory screen with the goal and what MyBuildy has learned", kind: "screen", width: 683, height: 854 },
   },
   {
