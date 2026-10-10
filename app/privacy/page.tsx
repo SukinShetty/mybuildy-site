@@ -97,8 +97,11 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-note font-bold text-text">The app itself</h2>
           <p className="mt-3">
-            MyBuildy the desktop app has no telemetry. It sends screenshots of the one window you pick, plus your
-            project&rsquo;s memory, only to the AI provider you choose, using your own key. Details are in the{" "}
+            MyBuildy the desktop app has no telemetry. It sends screenshots of the one window you pick, plus the
+            relevant parts of your project&rsquo;s memory, only to the AI provider you choose, using your own key.
+            Nothing goes anywhere else. With a local model (Ollama or LM Studio), everything stays on your
+            computer. If you add your own ElevenLabs key for voice, the spoken text and your spoken questions go
+            to ElevenLabs. Details are in the{" "}
             <a href={`${REPO_URL}#privacy-and-data`} className={link}>
               README
             </a>

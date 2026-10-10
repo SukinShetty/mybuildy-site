@@ -41,7 +41,7 @@ function Section({
   );
 }
 
-const promises = ["Source-available · Free to use", "Your key, your model", "Memory stays on your machine", "No account, no subscription"];
+const promises = ["Source-available · Free to use", "Your key, your model", "No MyBuildy servers", "No account, no subscription"];
 
 // Outside accounts of the same problem, linked under "Why I built this".
 const evidence = [
@@ -56,6 +56,7 @@ const evidence = [
 const notYet = [
   "MyBuildy runs the loop. You approve each step; he never sends anything on his own.",
   "Four of the six loop-engineering blocks are built. Scheduled runs and tool connectors are on the roadmap.",
+  "Claude Code is the coding agent MyBuildy is tested with. Other terminal agents are experimental: watching works, one-click paste is untested.",
   "Windows is tested most. macOS support is brand new — tell me what breaks.",
   "The Windows installer is not code-signed yet, so Windows SmartScreen warns you the first time: click More info, then Run anyway. The Mac app is signed and notarized by Apple.",
 ];
@@ -63,7 +64,7 @@ const notYet = [
 const install = [
   "Download the installer for your computer.",
   "Open it. On Windows, SmartScreen warns you because the installer is not code-signed yet: click More info, then Run anyway. On a Mac, drag MyBuildy into Applications and open it from there.",
-  "Paste an API key from your AI provider into Settings.",
+  "Follow the short setup: paste an API key from your AI provider and pick a model.",
   "Tell Buildy what you are building, then point him at your AI coding agent’s window.",
 ];
 
@@ -226,13 +227,24 @@ export default async function Home() {
             <div>
               <h3 className="text-small font-bold uppercase tracking-[0.14em] text-orange">Coding agents</h3>
               <p className="mt-3 text-body text-text/85">
-                Claude Code, Codex CLI, and any coding agent that runs in a terminal.
+                Tested with Claude Code. Other coding agents that run in a terminal, such as Codex CLI, are
+                experimental: watching and explaining work, one-click paste is untested.
               </p>
             </div>
             <div>
               <h3 className="text-small font-bold uppercase tracking-[0.14em] text-orange">AI providers</h3>
               <p className="mt-3 text-body text-text/85">
-                Anthropic, OpenAI, Google, OpenRouter, or local models through Ollama and LM Studio.
+                Anthropic, OpenAI or OpenRouter with your own API key. Google Gemini works too but is not yet
+                tested. Or a local model on your own computer through Ollama or LM Studio.
+              </p>
+            </div>
+            <div className="md:col-span-2">
+              <h3 className="text-small font-bold uppercase tracking-[0.14em] text-orange">Where your data goes</h3>
+              <p className="mt-3 max-w-3xl text-body text-text/85">
+                Screenshots of the one window you pick, and the relevant parts of your project&rsquo;s memory, go
+                to the AI provider you chose, with your own key. Nothing goes anywhere else. With a local model,
+                everything stays on your computer. (Optional: if you add your own ElevenLabs key for voice, the
+                spoken text and your spoken questions go to ElevenLabs.)
               </p>
             </div>
           </Reveal>
@@ -258,6 +270,11 @@ export default async function Home() {
               <p className="max-w-[34rem] text-body text-text/85">
                 Before you start, you need two things: a coding agent such as Claude Code already installed, and an
                 API key from one AI provider.
+              </p>
+              <p className="mt-4 max-w-[34rem] text-body text-text/85">
+                Prefer a local model? Install Ollama or LM Studio and download a model that can read images. After
+                the short setup, open Settings, choose Ollama or LM Studio under Advanced, and pick your model. No
+                key needed. (For now, the first-run setup itself asks for a cloud API key.)
               </p>
               <p className="mt-4 max-w-[34rem] text-body text-text/85">
                 Free for anyone to use, including for work. You just can&rsquo;t resell it.
