@@ -21,8 +21,8 @@ const button =
   "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-small font-bold transition-colors";
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams;
   if (!(await isAdmin())) {
-    const { error } = await searchParams;
     return <SignIn error={Boolean(error)} />;
   }
 
@@ -55,6 +55,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         </div>
       </header>
 
+      {error === "logout" && (
+        <p role="alert" className="mt-5 text-body text-orange">
+          Sign out could not be completed. Your session is still active. Please try again.
+        </p>
+      )}
       <Downloads releases={releases} />
 
       <section aria-labelledby="signups-title" className="mt-14">
