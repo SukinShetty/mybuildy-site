@@ -64,7 +64,7 @@ const notYet = [
 const install = [
   "Download the installer for your computer.",
   "Open it. On Windows, SmartScreen warns you because the installer is not code-signed yet: click More info, then Run anyway. On a Mac, drag MyBuildy into Applications and open it from there.",
-  "Follow the short setup: paste an API key from your AI provider, or choose a local model, and pick a model.",
+  "Follow the short setup: paste an API key from your AI provider (or choose Use a local model instead) and pick a model.",
   "Tell Buildy what you are building, then point him at your AI coding agent’s window.",
 ];
 
