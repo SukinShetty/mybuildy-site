@@ -54,7 +54,7 @@ export function Hero({ downloads }: { downloads: Downloads }) {
           />
 
           <p className="mt-5 text-small text-muted">
-            Free forever · Windows 10 and 11 · macOS 14 and later · You bring your own AI key
+            Free forever · Windows 10 and 11 · macOS 14 and later · Your own AI key or a local model
           </p>
         </div>
 
