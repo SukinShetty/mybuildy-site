@@ -12,11 +12,11 @@ registerHooks({ resolve(specifier, context, nextResolve) {
   return nextResolve(specifier, context);
 } });
 const auth = await import('../lib/admin-auth.ts');
-let cookie, rows, insertsFail, deletesFail, unavailable, options;
+let cookie, rows, insertError, insertsFail, deletesFail, unavailable, options;
 const originalNow = Date.now;
 beforeEach(() => {
   process.env.ADMIN_PASSWORD = 'synthetic-test-password-only';
-  cookie = undefined; rows = new Map(); insertsFail = deletesFail = unavailable = false;
+  cookie = undefined; rows = new Map(); insertError = null; insertsFail = deletesFail = unavailable = false;
   Date.now = () => 1800000000000;
   globalThis.__testCookies = {
     get: () => cookie ? { value: cookie } : undefined,
@@ -26,7 +26,7 @@ beforeEach(() => {
     assert.equal(table, 'admin_sessions');
     if (unavailable) throw new Error('synthetic unavailable');
     return {
-      async insert(row) { if (insertsFail) return { error: new Error('insert') }; rows.set(row.token_hash, row); return { error: null }; },
+      async insert(row) { if (insertError) return { error: insertError }; if (insertsFail) return { error: new Error('insert') }; rows.set(row.token_hash, row); return { error: null }; },
       select: () => ({ eq: (_, hash) => ({ maybeSingle: async () => ({ data: rows.get(hash) ?? null, error: null }) }) }),
       delete: () => ({ eq: async (_, hash) => { if (deletesFail) return { error: new Error('delete') }; rows.delete(hash); return { error: null }; } }),
     };
@@ -111,3 +111,23 @@ test('independent module instances observe the same server-side revocation', asy
   cookie = copied;
   assert.equal(await other.isAdmin(), false);
 });
+test('missing admin_sessions table: login fails closed with a clear setup reason', async () => {
+  const logged = [];
+  const originalError = console.error;
+  console.error = (...args) => logged.push(args.join(' '));
+  try {
+    for (const code of ['42P01', 'PGRST205']) {
+      insertError = Object.assign(new Error('relation "admin_sessions" does not exist'), { code });
+      assert.equal(await auth.startSessionResult(), 'missing-table');
+      assert.equal(await auth.startSession(), false);
+      assert.equal(cookie, undefined);
+      assert.equal(await auth.isAdmin(), false);
+    }
+    insertError = Object.assign(new Error('other'), { code: '08006' });
+    assert.equal(await auth.startSessionResult(), 'failed');
+  } finally {
+    console.error = originalError;
+  }
+  assert.ok(logged.some((l) => l.includes('supabase/admin-sessions.sql')));
+});
+

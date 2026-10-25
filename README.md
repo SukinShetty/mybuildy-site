@@ -26,7 +26,7 @@ The pre-download answers are stored by `POST /api/signup` in a Supabase table. C
 
 `/admin` (password: `ADMIN_PASSWORD`) shows download counts per release from the GitHub API, signup totals, answer counts, every signup, and a CSV export at `/admin/signups.csv`.
 
-Server-only environment variables (see `.env.example`): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_PASSWORD`. Without the Supabase pair nothing is stored. The download still starts, but the form shows a save warning and a retry button; it only remembers a signup after a 201 response. Retries reuse a UUID primary key, so a lost response cannot create a duplicate row within the same form attempt. No database migration is required.
+Server-only environment variables (see `.env.example`): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_PASSWORD`. Without the Supabase pair nothing is stored. The download still starts, but the form shows a save warning and a retry button; it only remembers a signup after a 201 response. Retries reuse a UUID primary key, so a lost response cannot create a duplicate row within the same form attempt. The signups table needs no new migration, but admin sign-in does: apply `supabase/admin-sessions.sql` before deploying this code, or admin login fails (it shows a setup error and lets no one in). Follow `docs/admin-session-rollout.md` for the order and checks.
 
 ## Assets
 

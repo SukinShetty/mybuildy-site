@@ -47,21 +47,43 @@ export async function isAdmin(): Promise<boolean> {
   }
 }
 
+export type StartSessionResult = "ok" | "failed" | "missing-table";
+
+/** Postgres "undefined_table" or PostgREST "table not in schema cache". */
+export function isMissingTableError(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code;
+  return code === "42P01" || code === "PGRST205";
+}
+
 export async function startSession(): Promise<boolean> {
-  if (!adminConfigured()) return false;
+  return (await startSessionResult()) === "ok";
+}
+
+/**
+ * Like startSession, but says WHY it failed so login can show a clear setup error
+ * when supabase/admin-sessions.sql has not been applied (fails closed either way).
+ */
+export async function startSessionResult(): Promise<StartSessionResult> {
+  if (!adminConfigured()) return "failed";
   try {
     const db = getSupabase();
-    if (!db) return false;
+    if (!db) return "failed";
     const value = `v2.${randomBytes(32).toString("base64url")}`;
     const { error } = await db.from(SESSION_TABLE).insert({
       token_hash: tokenHash(value),
       expires_at: new Date(Date.now() + ADMIN_COOKIE_MAX_AGE * 1000).toISOString(),
     });
-    if (error) return false;
+    if (error) {
+      if (isMissingTableError(error)) {
+        console.error(`[admin] Sign-in failed: the ${SESSION_TABLE} table is missing. Apply supabase/admin-sessions.sql (see docs/admin-session-rollout.md).`);
+        return "missing-table";
+      }
+      return "failed";
+    }
     (await cookies()).set(ADMIN_COOKIE, value, { ...cookieOptions, maxAge: ADMIN_COOKIE_MAX_AGE });
-    return true;
+    return "ok";
   } catch {
-    return false;
+    return "failed";
   }
 }
 
