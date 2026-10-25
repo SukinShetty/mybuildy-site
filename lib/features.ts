@@ -42,8 +42,8 @@ export const FEATURES: Feature[] = [
     image: { src: "/images/screens/settings.png", alt: "Settings screen listing Anthropic, OpenAI, Google Gemini and OpenRouter as providers", kind: "screen", width: 683, height: 854 },
   },
   {
-    title: "Speaks, so you can keep reading",
-    line: "He can read his explanation aloud while your eyes stay on your coding agent.",
+    title: "Talk to him, he talks back",
+    line: "He reads his explanation aloud while your eyes stay on your coding agent. Ask out loud with the mic, or turn on the \"Hey Buildy\" wake word (experimental) and say \"Hey Buildy, give me the prompt.\" Your voice is turned into text on your computer.",
     image: { src: "/images/buildy-speaking.png", alt: "Buildy talking with one hand raised", kind: "pose", width: 512, height: 768 },
   },
 ];

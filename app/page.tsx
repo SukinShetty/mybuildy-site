@@ -243,8 +243,10 @@ export default async function Home() {
               <p className="mt-3 max-w-3xl text-body text-text/85">
                 Screenshots of the one window you pick, and the relevant parts of your project&rsquo;s memory, go
                 to the AI provider you chose, with your own key. Nothing goes anywhere else. With a local model,
-                everything stays on your computer. (Optional: if you add your own ElevenLabs key for voice, the
-                spoken text and your spoken questions go to ElevenLabs.)
+                everything stays on your computer. What you say to him is turned into text on your computer. (Optional: if you add your own
+                ElevenLabs key for voice, the text he speaks goes to ElevenLabs, and if the on-computer listening
+                model is missing or fails to load, the audio of what you ask with the mic button is sent to
+                ElevenLabs to be turned into text. The &quot;Hey Buildy&quot; wake word never uses ElevenLabs.)
               </p>
             </div>
           </Reveal>
