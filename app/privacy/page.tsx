@@ -101,7 +101,9 @@ export default function PrivacyPage() {
             relevant parts of your project&rsquo;s memory, only to the AI provider you choose, using your own key.
             Nothing goes anywhere else. With a local model (Ollama or LM Studio), everything stays on your
             computer. If you add your own ElevenLabs key for voice, the spoken text and your spoken questions go
-            to ElevenLabs. Details are in the{" "}
+            to ElevenLabs. When the installed app opens, it asks GitHub once whether a newer version is
+            published; nothing about you or your projects is sent, and nothing downloads until you click Update.
+            Details are in the{" "}
             <a href={`${REPO_URL}#privacy-and-data`} className={link}>
               README
             </a>
