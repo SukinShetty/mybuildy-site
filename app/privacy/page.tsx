@@ -103,7 +103,10 @@ export default function PrivacyPage() {
             computer. Your spoken questions, and the optional &quot;Hey Buildy&quot; wake word (experimental) (off unless you turn
             it on), are handled on your computer: nothing you say is sent anywhere before you say
             &quot;Hey Buildy&quot;, and the question is turned into text on your computer. If you add your own
-            ElevenLabs key for voice, the text he speaks goes to ElevenLabs. Details are in the{" "}
+            ElevenLabs key for voice, the text he speaks goes to ElevenLabs; and if the on-computer listening
+            model is missing or fails to load, the audio of the question you record with the mic button is
+            uploaded to ElevenLabs to be turned into text. The &quot;Hey Buildy&quot; wake word only ever listens on
+            your computer and never uses ElevenLabs. Details are in the{" "}
             <a href={`${REPO_URL}#privacy-and-data`} className={link}>
               README
             </a>

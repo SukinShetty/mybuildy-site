@@ -43,7 +43,7 @@ export const FEATURES: Feature[] = [
   },
   {
     title: "Talk to him, he talks back",
-    line: "He reads his explanation aloud while your eyes stay on your coding agent. Ask out loud with the mic, or turn on \"MyBuildy\" and say \"MyBuildy, give me the prompt.\" Your voice is turned into text on your computer.",
+    line: "He reads his explanation aloud while your eyes stay on your coding agent. Ask out loud with the mic, or turn on the \"Hey Buildy\" wake word (experimental) and say \"Hey Buildy, give me the prompt.\" Your voice is turned into text on your computer.",
     image: { src: "/images/buildy-speaking.png", alt: "Buildy talking with one hand raised", kind: "pose", width: 512, height: 768 },
   },
 ];
