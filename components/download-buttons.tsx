@@ -5,6 +5,7 @@ import { ChevronDown, Download } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { formatSize, type Downloads } from "@/lib/github";
 import type { Platform, SignupPayload } from "@/lib/signup";
+import { createSignupAttempt } from "@/lib/signup-client";
 import { downloadPath } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -80,31 +81,6 @@ function startDownload(url: string) {
   a.remove();
 }
 
-const SAVE_TIMEOUT_MS = 5000;
-
-/** Save the answers, waiting at most SAVE_TIMEOUT_MS. Resolves true only when the row was stored
- *  (201). Any failure is logged and resolves false: the download never waits longer than that. */
-async function saveAnswers(answers: SignupPayload): Promise<boolean> {
-  const abort = new AbortController();
-  const timer = setTimeout(() => abort.abort(), SAVE_TIMEOUT_MS);
-  try {
-    const res = await fetch("/api/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(answers),
-      keepalive: true,
-      signal: abort.signal,
-    });
-    if (res.status !== 201) console.warn(`[signup] answers not stored (HTTP ${res.status}); the download goes ahead`);
-    return res.status === 201;
-  } catch (error) {
-    console.warn("[signup] could not reach the server; the download goes ahead", error);
-    return false;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 type EarlyDownload = { platform: string | null; owner: string | null };
 declare global {
   interface Window {
@@ -122,7 +98,7 @@ type Props = {
   className?: string;
 };
 
-type Guide = { platform: Platform; url: string; askFirst: boolean; returnFocus: HTMLElement | null };
+type Guide = { id: number; platform: Platform; url: string; askFirst: boolean; returnFocus: HTMLElement | null };
 
 export function DownloadButtons({ downloads, onAttention, note, className }: Props) {
   const { windows, macArm, macIntel, version } = downloads;
@@ -130,6 +106,8 @@ export function DownloadButtons({ downloads, onAttention, note, className }: Pro
   const [guide, setGuide] = useState<Guide | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
   const [macOpenAtStart, setMacOpenAtStart] = useState(false);
+  const attemptRef = useRef<ReturnType<typeof createSignupAttempt> | null>(null);
+  const guideIdRef = useRef(0);
   const owner = useId(); // ties an early click to THIS set of buttons (hero or Get started)
   const winButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -147,7 +125,8 @@ export function DownloadButtons({ downloads, onAttention, note, className }: Pro
     e?.preventDefault();
     const askFirst = !readSubmitted();
     if (!askFirst) startDownload(url);
-    setGuide({ platform, url, askFirst, returnFocus: from });
+    attemptRef.current = null;
+    setGuide({ id: ++guideIdRef.current, platform, url, askFirst, returnFocus: from });
     setGuideOpen(true);
   };
 
@@ -162,13 +141,14 @@ export function DownloadButtons({ downloads, onAttention, note, className }: Pro
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on mount
   }, []);
 
-  // Submit: store the answers first (at most a few seconds), then start the file, still through
-  // mybuildy.com. A failed save is logged and never keeps anyone from the download.
-  const submit = async (answers: SignupPayload): Promise<void> => {
-    if (!guide) return;
-    await saveAnswers(answers);
-    startDownload(guide.url);
-    markSubmitted();
+  // A retry reuses the same request ID and never starts a second download.
+  const submit = async (answers: SignupPayload): Promise<boolean> => {
+    if (!guide) return false;
+    attemptRef.current ??= createSignupAttempt(answers, {
+      onStored: markSubmitted,
+      onDownload: () => startDownload(guide.url),
+    });
+    return attemptRef.current.submit();
   };
 
   const warm = () => void loadGuide();
@@ -222,6 +202,7 @@ export function DownloadButtons({ downloads, onAttention, note, className }: Pro
 
       {guide && (
         <DownloadGuide
+          key={guide.id}
           open={guideOpen}
           onOpenChange={setGuideOpen}
           platform={guide.platform}

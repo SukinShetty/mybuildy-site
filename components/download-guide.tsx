@@ -47,7 +47,7 @@ type Props = {
   /** Show the questions first (this browser hasn't submitted yet). */
   askFirst: boolean;
   /** Store the answers (waiting a few seconds at most), then start the download. Never throws. */
-  onSubmit: (answers: SignupPayload) => Promise<void> | void;
+  onSubmit: (answers: SignupPayload) => Promise<boolean>;
   /** The download button that opened the modal; focus returns there on close. */
   returnFocus: HTMLElement | null;
 };
@@ -55,7 +55,23 @@ type Props = {
 export default function DownloadGuide({ open, onOpenChange, platform, downloadUrl, version, askFirst, onSubmit, returnFocus }: Props) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [retrying, setRetrying] = useState(false);
+  const retryAnswers = useRef<SignupPayload | null>(null);
+  const retryInFlight = useRef(false);
   const showForm = askFirst && !submitted;
+  const retrySave = async () => {
+    if (!retryAnswers.current || retryInFlight.current) return;
+    retryInFlight.current = true;
+    setRetrying(true);
+    try {
+      const saved = await onSubmit(retryAnswers.current);
+      setSaveFailed(!saved);
+    } finally {
+      retryInFlight.current = false;
+      setRetrying(false);
+    }
+  };
 
   // When the form gives way to the instructions, move focus to the new heading so keyboard and
   // screen-reader users land on the install steps.
@@ -85,12 +101,23 @@ export default function DownloadGuide({ open, onOpenChange, platform, downloadUr
               headingRef={headingRef}
               platform={platform}
               onSubmit={async (answers) => {
-                await onSubmit(answers); // stored (or given up on after a few seconds), download started
+                retryAnswers.current = answers;
+                const saved = await onSubmit(answers);
+                setSaveFailed(!saved);
                 setSubmitted(true);
               }}
             />
           ) : (
             <>
+              {saveFailed && (
+                <div role="alert" className="mb-5 mr-8 rounded-xl border border-orange p-4 text-small">
+                  <p>Your download can continue, but we couldn&rsquo;t save your answers or confirm your signup for updates.</p>
+                  <button type="button" onClick={() => void retrySave()} disabled={retrying}
+                    className={`mt-3 min-h-11 underline underline-offset-4 ${focusRing}`}>
+                    {retrying ? "Retrying…" : "Retry saving my answers"}
+                  </button>
+                </div>
+              )}
               {/* The install steps: first, prominent, always shown once the file is on its way. Only Windows
                   warns (unsigned installer); the Mac app is signed and notarized. */}
               <section className="mr-10 rounded-2xl border-2 border-orange bg-orange/10 p-4 sm:mr-8 sm:p-5">
@@ -120,7 +147,7 @@ export default function DownloadGuide({ open, onOpenChange, platform, downloadUr
                 </p>
               </section>
               <p className="mt-6 text-body text-text/85">
-                {submitted ? "Thank you — that really helps. " : ""}If it doesn&rsquo;t install, tell me —{" "}
+                {submitted && !saveFailed ? "Thank you — your answers are saved. " : ""}If it doesn&rsquo;t install, tell me —{" "}
                 <a href={ISSUES_URL} target="_blank" rel="noopener noreferrer" className={`${linkClass} ${focusRing}`}>
                   open an issue on GitHub
                 </a>
@@ -211,6 +238,7 @@ function Questions({
   onSubmit: (answers: SignupPayload) => Promise<void>;
 }) {
   const [sending, setSending] = useState(false);
+  const sendingRef = useRef(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [build, setBuild] = useState<string[]>([]);
@@ -237,9 +265,13 @@ function Questions({
       formRef.current?.querySelector<HTMLElement>(`[data-field="${first}"]`)?.focus();
       return;
     }
-    if (sending) return;
+    if (sendingRef.current) return;
+    sendingRef.current = true;
     setSending(true);
-    void onSubmit({ name: name.trim(), email: email.trim(), build, agents, self, platform }).finally(() => setSending(false));
+    void onSubmit({ name: name.trim(), email: email.trim(), build, agents, self, platform }).finally(() => {
+      sendingRef.current = false;
+      setSending(false);
+    });
   };
 
   const inputClass = `mt-2 block min-h-12 w-full rounded-xl border bg-ink px-4 text-body text-text placeholder:text-muted/70 transition-colors hover:border-orange/40 focus:border-orange ${focusRing}`;
@@ -336,7 +368,7 @@ function Questions({
           complete, but a press still explains what's missing instead of doing nothing. */}
       <button
         type="submit"
-        aria-disabled={!ready}
+        aria-disabled={!ready || sending}
         className={`mt-8 min-h-12 w-full rounded-full px-5 text-body font-bold transition-colors ${focusRing} ${
           ready ? "bg-orange text-ink hover:bg-amber" : "cursor-not-allowed bg-orange/35 text-ink/70"
         }`}

@@ -17,7 +17,7 @@ export default function TermsPage() {
         ← Back to MyBuildy
       </Link>
       <h1 className="mt-8 text-section font-bold tracking-[-0.02em]">Terms</h1>
-      <p className="mt-3 text-small text-muted">Last updated: 25 September 2026</p>
+      <p className="mt-3 text-small text-muted">Last updated: 10 October 2026</p>
 
       <div className="mt-10 space-y-10 text-body text-text/90">
         <section>
@@ -44,8 +44,10 @@ export default function TermsPage() {
         <section>
           <h2 className="text-note font-bold text-text">Your AI provider</h2>
           <p className="mt-3">
-            You use your own API key and pay your provider directly. Their terms and privacy policy apply to what you
-            send them. MyBuildy has no access to your provider account beyond the key you store on your own computer.
+            If you choose a cloud AI provider, you use your own API key and pay that provider directly. Their terms
+            and privacy policy apply to what you send them. MyBuildy has no access to your provider account beyond
+            the key you store on your own computer. You can instead connect a local model through Ollama or
+            LM Studio without a cloud API key. The local model and runtime may have their own license terms.
           </p>
         </section>
 

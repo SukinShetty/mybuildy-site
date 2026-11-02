@@ -21,9 +21,9 @@ const button =
   "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-small font-bold transition-colors";
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams;
   if (!(await isAdmin())) {
-    const { error } = await searchParams;
-    return <SignIn error={Boolean(error)} />;
+    return <SignIn error={error} />;
   }
 
   const db = getSupabase();
@@ -55,6 +55,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         </div>
       </header>
 
+      {error === "logout" && (
+        <p role="alert" className="mt-5 text-body text-orange">
+          Sign out could not be completed. Your session is still active. Please try again.
+        </p>
+      )}
       <Downloads releases={releases} />
 
       <section aria-labelledby="signups-title" className="mt-14">
@@ -71,7 +76,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   );
 }
 
-function SignIn({ error }: { error: boolean }) {
+function SignIn({ error }: { error?: string }) {
+  const message =
+    error === "setup" ? "Admin sign-in is not set up: the admin_sessions table is missing. Apply supabase/admin-sessions.sql."
+    : error === "session" ? "Could not start a session. Try again."
+    : error ? "Wrong password."
+    : null;
   return (
     <main className="mx-auto flex min-h-svh max-w-sm flex-col justify-center px-4 py-16">
       <h1 className="text-section font-bold tracking-[-0.02em]">Admin</h1>
@@ -87,13 +97,13 @@ function SignIn({ error }: { error: boolean }) {
             required
             autoComplete="current-password"
             autoFocus
-            aria-invalid={error || undefined}
-            aria-describedby={error ? "password-error" : undefined}
+            aria-invalid={error === "1" || undefined}
+            aria-describedby={message ? "password-error" : undefined}
             className="mt-2 block h-12 w-full rounded-xl border border-line bg-surface px-4 text-body text-text outline-none focus-visible:border-amber"
           />
-          {error && (
+          {message && (
             <p id="password-error" role="alert" className="mt-3 text-small text-orange">
-              Wrong password.
+              {message}
             </p>
           )}
           <button type="submit" className={`${button} mt-6 w-full cursor-pointer bg-orange text-ink hover:bg-amber`}>
