@@ -243,11 +243,12 @@ export default async function Home() {
               <h3 className="text-small font-bold uppercase tracking-[0.14em] text-orange">Where your data goes</h3>
               <p className="mt-3 max-w-3xl text-body text-text/85">
                 Screenshots of the one window you pick, and the relevant parts of your project&rsquo;s memory, go
-                to the AI provider you chose, with your own key. Nothing goes anywhere else. With a local model,
+                to the AI provider you chose, with your own key. Nothing about your projects goes anywhere else. With a local model,
                 everything stays on your computer. What you say to him with the mic button is turned into text on your computer. (Optional: if you add your own
                 ElevenLabs key for voice, the text he speaks goes to ElevenLabs, and if the on-computer listening
                 model is missing or fails to load, the audio of what you ask with the mic button is sent to
-                ElevenLabs to be turned into text. Hands-free &quot;Hey Buildy&quot; voice is coming soon; when it ships, it will only ever listen on your computer and will not use ElevenLabs.)
+                ElevenLabs to be turned into text. Hands-free &quot;Hey Buildy&quot; voice is coming soon; when it ships, it will only ever listen on your computer and will not use ElevenLabs.) When the app opens, it asks GitHub
+                once whether a newer version is out; nothing about your projects is sent.
               </p>
             </div>
           </Reveal>

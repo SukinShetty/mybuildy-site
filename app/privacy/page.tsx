@@ -99,12 +99,14 @@ export default function PrivacyPage() {
           <p className="mt-3">
             MyBuildy the desktop app has no telemetry. It sends screenshots of the one window you pick, plus the
             relevant parts of your project&rsquo;s memory, only to the AI provider you choose, using your own key.
-            Nothing goes anywhere else. With a local model (Ollama or LM Studio), everything stays on your
+            Nothing about your projects goes anywhere else. With a local model (Ollama or LM Studio), everything stays on your
             computer. Your spoken questions (the mic button) are turned into text on your computer. If you add your own
             ElevenLabs key for voice, the text he speaks goes to ElevenLabs; and if the on-computer listening
             model is missing or fails to load, the audio of the question you record with the mic button is
             uploaded to ElevenLabs to be turned into text. Hands-free &quot;Hey Buildy&quot; voice is coming soon.
-            When it ships, it will only ever listen on your computer and will never use ElevenLabs. Details are in the{" "}
+            When it ships, it will only ever listen on your computer and will never use ElevenLabs. When MyBuildy opens, it asks GitHub once whether a newer version is
+            published. GitHub sees your IP address, as with any web request; no account, install ID or anything
+            about your projects is sent. Nothing downloads until you click Update. Details are in the{" "}
             <a href={`${REPO_URL}#privacy-and-data`} className={link}>
               README
             </a>
